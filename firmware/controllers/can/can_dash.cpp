@@ -908,9 +908,9 @@ void canDashboardHaltech(CanCycle cycle) {
 			/* Battery Voltage */
 			msg.setShortValueMsb(Sensor::getOrZero(SensorType::BatteryVoltage) * 10, 0);
 			/* unused */ /* Flex fuel */
-			tmp =  (uint16_t)Sensor::getOrZero(SensorType::FuelEthanolPercent);
-			msg[2] = (tmp >> 8);
-			msg[3] = (tmp & 0x00ff);
+			msg.setShortValueMsb(Sensor::getOrZero(SensorType::FuelEthanolPercent) * 1, 2);
+			msg[2] = 0x00;
+			msg[3] = 0x00;
 			/* Target Boost Level todo */
 			msg[4] = 0x00;
 			msg[5] = 0x00;
@@ -999,9 +999,9 @@ void canDashboardHaltech(CanCycle cycle) {
 			msg[4] = 0x00;
 			msg[5] = 0x00;
 			/* Oil Temperature */
-			tmp = ((Sensor::getOrZero(SensorType::OilTemperature) + 273.15) * 10);
-			msg[6] = (tmp >> 8);
-			msg[7] = (tmp & 0x00ff);
+			msg.setShortValueMsb((Sensor::getOrZero(SensorType::OilTemperature) + 273.15) * 10);
+			msg[6] = 0x00;
+			msg[7] = 0x00;
 		}
 
 		/* 0x3E1 = 5Hz rate */
