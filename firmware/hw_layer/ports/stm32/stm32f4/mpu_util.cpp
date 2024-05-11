@@ -28,7 +28,7 @@ size_t flashSectorSize(flashsector_t sector) {
 uintptr_t getFlashAddrFirstCopy() {
 	/* last 128K sector on 512K devices */
 	if (TM_ID_GetFlashSize() <= 512)
-		return 0x08060000;
+		return 0x080E0000;
 	return 0x080E0000;
 }
 
