@@ -269,29 +269,29 @@ pins:
     ts_name: Spare trigger input
 
   - pin: 40
-    id: B9
-    class: switch_inputs
+    id: [B9, B9]
+    class: [event_inputs, switch_inputs]
     function: Digital Input
     type: hall
     ts_name: Digital Input 1
 
   - pin: 41
-    id: E0
-    class: switch_inputs
+    id: [E0, E0]
+    class: [event_inputs, switch_inputs]
     function: Digital Input
     type: hall
     ts_name: Digital Input 2
 
   - pin: 42
-    id: E2
-    class: switch_inputs
+    id: [E2, E2]
+    class: [event_inputs, switch_inputs]
     function: Digital Input
     type: hall
     ts_name: Digital Input 3
 
   - pin: 43
-    id: E3
-    class: switch_inputs
+    id: [E3, E3]
+    class: [event_inputs, switch_inputs]
     function: Digital Input
     type: hall
     ts_name: Digital Input 4
