@@ -1,6 +1,6 @@
 package com.rusefi.config.generated;
 
-// this file was generated automatically by rusEFI tool config_definition-all.jar based on (unknown script) integration/rusefi_config.txt Fri May 10 23:32:13 UTC 2024
+// this file was generated automatically by rusEFI tool config_definition-all.jar based on (unknown script) integration/rusefi_config.txt Fri May 17 01:07:09 UTC 2024
 
 // by class com.rusefi.output.FileJavaFieldsConsumer
 import com.rusefi.config.*;
@@ -1137,7 +1137,6 @@ public class Fields {
 	public static final int pin_output_mode_e_OM_INVERTED = 1;
 	public static final int pin_output_mode_e_OM_OPENDRAIN = 2;
 	public static final int pin_output_mode_e_OM_OPENDRAIN_INVERTED = 3;
-	public static final int POOR_MAN_MAX_CYLINDER_COUNT = 6;
 	public static final int PRIME_CURVE_COUNT = 8;
 	public static final String PROTOCOL_ACR_NAME = "acr";
 	public static final String PROTOCOL_ANALOG_CHART = "analog_chart";
@@ -1196,6 +1195,7 @@ public class Fields {
 	public static final int SentEtbType_FORD_TYPE_1 = 2;
 	public static final int SentEtbType_GM_TYPE_1 = 1;
 	public static final int SentEtbType_NONE = 0;
+	public static final int SIGNATURE_HASH = 1112304558;
 	public static final String SIMULATOR_TUNE_BIN_FILE_NAME = "generated/simulator_tune_image.bin";
 	public static final String SIMULATOR_TUNE_BIN_FILE_NAME_PREFIX = "generated/simulator_tune_image";
 	public static final String SIMULATOR_TUNE_BIN_FILE_NAME_SUFFIX = ".bin";
@@ -1451,7 +1451,7 @@ public class Fields {
 	public static final int TS_RESPONSE_UNDERRUN = 0x80;
 	public static final int TS_RESPONSE_UNRECOGNIZED_COMMAND = 0x83;
 	public static final char TS_SET_LOGGER_SWITCH = 'l';
-	public static final String TS_SIGNATURE = "rusEFI master.2024.05.11.f407-discovery.3238900561";
+	public static final String TS_SIGNATURE = "rusEFI master.2024.05.17.f407-discovery.1112304558";
 	public static final char TS_SIMULATE_CAN = '>';
 	public static final char TS_SINGLE_WRITE_COMMAND = 'W';
 	public static final char TS_TEST_COMMAND = 't';
@@ -1832,7 +1832,6 @@ public class Fields {
 	public static final Field VERBOSEKLINE = Field.create("VERBOSEKLINE", 752, FieldType.BIT, 28).setBaseOffset(0);
 	public static final Field IDLEINCREMENTALPIDCIC = Field.create("IDLEINCREMENTALPIDCIC", 752, FieldType.BIT, 29).setBaseOffset(0);
 	public static final Field ENABLEAEMXSERIES = Field.create("ENABLEAEMXSERIES", 752, FieldType.BIT, 30).setBaseOffset(0);
-	public static final Field DONOTUSE1X5_OVERDWELL_PROTECTION = Field.create("DONOTUSE1X5_OVERDWELL_PROTECTION", 752, FieldType.BIT, 31).setBaseOffset(0);
 	public static final Field LOGICANALYZERPINS1 = Field.create("LOGICANALYZERPINS1", 756, FieldType.INT16, brain_input_pin_e).setScale(1.0).setBaseOffset(0);
 	public static final Field LOGICANALYZERPINS2 = Field.create("LOGICANALYZERPINS2", 758, FieldType.INT16, brain_input_pin_e).setScale(1.0).setBaseOffset(0);
 	public static final Field LOGICANALYZERPINS3 = Field.create("LOGICANALYZERPINS3", 760, FieldType.INT16, brain_input_pin_e).setScale(1.0).setBaseOffset(0);
@@ -2220,6 +2219,7 @@ public class Fields {
 	public static final Field STARTREQUESTPININVERTED = Field.create("STARTREQUESTPININVERTED", 1496, FieldType.BIT, 16).setBaseOffset(0);
 	public static final Field TCU_RANGESENSORPULLDOWN = Field.create("TCU_RANGESENSORPULLDOWN", 1496, FieldType.BIT, 17).setBaseOffset(0);
 	public static final Field SKIPBOARDCANDASH = Field.create("SKIPBOARDCANDASH", 1496, FieldType.BIT, 18).setBaseOffset(0);
+	public static final Field BRAKEPEDALPININVERTED = Field.create("BRAKEPEDALPININVERTED", 1496, FieldType.BIT, 19).setBaseOffset(0);
 	public static final Field DEVBIT0 = Field.create("DEVBIT0", 1496, FieldType.BIT, 20).setBaseOffset(0);
 	public static final Field DEVBIT1 = Field.create("DEVBIT1", 1496, FieldType.BIT, 21).setBaseOffset(0);
 	public static final Field DEVBIT2 = Field.create("DEVBIT2", 1496, FieldType.BIT, 22).setBaseOffset(0);
@@ -3505,7 +3505,6 @@ public class Fields {
 	VERBOSEKLINE,
 	IDLEINCREMENTALPIDCIC,
 	ENABLEAEMXSERIES,
-	DONOTUSE1X5_OVERDWELL_PROTECTION,
 	LOGICANALYZERPINS1,
 	LOGICANALYZERPINS2,
 	LOGICANALYZERPINS3,
@@ -3888,6 +3887,7 @@ public class Fields {
 	STARTREQUESTPININVERTED,
 	TCU_RANGESENSORPULLDOWN,
 	SKIPBOARDCANDASH,
+	BRAKEPEDALPININVERTED,
 	DEVBIT0,
 	DEVBIT1,
 	DEVBIT2,

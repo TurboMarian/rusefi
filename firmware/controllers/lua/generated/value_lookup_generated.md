@@ -502,9 +502,6 @@ Disable the electronic throttle motor and DC idle motor for testing.\nThis mode 
 ### enableAemXSeries
 AEM X-Series or rusEFI Wideband
 
-### doNotUse1x5_overdwell_protection
-
-
 ### verboseCanBaseAddress
 
 
@@ -1127,6 +1124,9 @@ AEM X-Series EGT gauge kit or rusEFI EGT sensor from Wideband controller
 
 
 ### skipBoardCanDash
+
+
+### brakePedalPinInverted
 
 
 ### devBit0

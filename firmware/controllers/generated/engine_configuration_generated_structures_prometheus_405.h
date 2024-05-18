@@ -1,4 +1,4 @@
-// this section was generated automatically by rusEFI tool config_definition-all.jar based on (unknown script) integration/rusefi_config.txt Fri May 10 21:14:43 UTC 2024
+// this section was generated automatically by rusEFI tool config_definition-all.jar based on (unknown script) integration/rusefi_config.txt Tue May 14 14:11:25 UTC 2024
 // by class com.rusefi.output.CHeaderConsumer
 // begin
 #pragma once
@@ -216,12 +216,10 @@ struct gppwm_channel {
 	 */
 	gppwm_channel_e rpmAxis;
 	/**
-	 * units: load
 	 * offset 10
 	 */
 	scaled_channel<int16_t, 2, 1> loadBins[GPPWM_LOAD_COUNT];
 	/**
-	 * units: RPM
 	 * offset 26
 	 */
 	int16_t rpmBins[GPPWM_RPM_COUNT];
@@ -1647,7 +1645,7 @@ struct engine_configuration_s {
 	bool enableAemXSeries : 1 {};
 	/**
 	offset 752 bit 31 */
-	bool doNotUse1x5_overdwell_protection : 1 {};
+	bool unused32nd : 1 {};
 	/**
 	 * offset 756
 	 */
@@ -2841,7 +2839,7 @@ struct engine_configuration_s {
 	bool skipBoardCanDash : 1 {};
 	/**
 	offset 1496 bit 19 */
-	bool unusedBit_503_19 : 1 {};
+	bool brakePedalPinInverted : 1 {};
 	/**
 	offset 1496 bit 20 */
 	bool devBit0 : 1 {};
@@ -4816,7 +4814,6 @@ struct persistent_config_s {
 	 */
 	scaled_channel<uint8_t, 1, 2> boostTableClosedLoop[BOOST_LOAD_COUNT][BOOST_RPM_COUNT];
 	/**
-	 * units: %
 	 * offset 5484
 	 */
 	uint8_t boostTpsBins[BOOST_LOAD_COUNT];
@@ -5619,4 +5616,4 @@ struct persistent_config_s {
 static_assert(sizeof(persistent_config_s) == 22656);
 
 // end
-// this section was generated automatically by rusEFI tool config_definition-all.jar based on (unknown script) integration/rusefi_config.txt Fri May 10 21:14:43 UTC 2024
+// this section was generated automatically by rusEFI tool config_definition-all.jar based on (unknown script) integration/rusefi_config.txt Tue May 14 14:11:25 UTC 2024

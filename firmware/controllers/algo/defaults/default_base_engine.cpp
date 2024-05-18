@@ -37,6 +37,7 @@ void setGDIFueling() {
 /* Cylinder to bank mapping */
 void setLeftRightBanksNeedBetterName() {
     for (size_t i = 0; i < engineConfiguration->cylindersCount; i++) {
+      // zero-based index
 	    engineConfiguration->cylinderBankSelect[i] = i % 2;
     }
 }
@@ -66,7 +67,8 @@ void setDefaultBaseEngine() {
 
   for (size_t i = 0; i < engineConfiguration->cylindersCount; i++) {
     // one knock sensor by default. See also 'setLeftRightBanksNeedBetterName()'
-    engineConfiguration->cylinderBankSelect[i] = 1;
+    // zero-based index
+    engineConfiguration->cylinderBankSelect[i] = 0;
   }
 
 	engineConfiguration->compressionRatio = 9;
@@ -90,7 +92,7 @@ void setDefaultBaseEngine() {
 
     engineConfiguration->watchOutForLinearTime = true;
 
-  setLinearCurve(engineConfiguration->tractionControlSlipBins, /*from*/0.8, /*to*/1.2, 0.05);
+  setLinearCurve(engineConfiguration->tractionControlSlipBins, /*from*/0.9, /*to*/1.2, 0.05);
 	setLinearCurve(engineConfiguration->tractionControlSpeedBins, /*from*/10, /*to*/120, 5);
 
 	engineConfiguration->turbochargerFilter = 0.01f;

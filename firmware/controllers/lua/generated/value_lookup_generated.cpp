@@ -508,9 +508,6 @@ float getConfigValueByName(const char *name) {
 // enableAemXSeries
 		case 259909218:
 			return engineConfiguration->enableAemXSeries;
-// doNotUse1x5_overdwell_protection
-		case 2143409165:
-			return engineConfiguration->doNotUse1x5_overdwell_protection;
 // verboseCanBaseAddress
 		case 6238478:
 			return engineConfiguration->verboseCanBaseAddress;
@@ -1135,6 +1132,9 @@ float getConfigValueByName(const char *name) {
 // skipBoardCanDash
 		case 1878649142:
 			return engineConfiguration->skipBoardCanDash;
+// brakePedalPinInverted
+		case -1969589096:
+			return engineConfiguration->brakePedalPinInverted;
 // devBit0
 		case 161953459:
 			return engineConfiguration->devBit0;
@@ -2680,11 +2680,6 @@ bool setConfigValueByName(const char *name, float value) {
 		engineConfiguration->enableAemXSeries = (int)value;
 		return 1;
 	}
-		case 2143409165:
-	{
-		engineConfiguration->doNotUse1x5_overdwell_protection = (int)value;
-		return 1;
-	}
 		case 6238478:
 	{
 		engineConfiguration->verboseCanBaseAddress = (int)value;
@@ -3723,6 +3718,11 @@ bool setConfigValueByName(const char *name, float value) {
 		case 1878649142:
 	{
 		engineConfiguration->skipBoardCanDash = (int)value;
+		return 1;
+	}
+		case -1969589096:
+	{
+		engineConfiguration->brakePedalPinInverted = (int)value;
 		return 1;
 	}
 		case 161953459:

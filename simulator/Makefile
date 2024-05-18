@@ -200,7 +200,12 @@ CPPSRC = $(ALLCPPSRC) \
 # List ASM source files here
 ASMSRC = $(PORTASM)
 
-INCDIR = . \
+ifneq ($(BOARD_DIR),)
+  # used by custom board custom live data
+  INCDIR += $(BOARD_DIR)/firmware
+endif
+
+INCDIR += . \
   $(PCH_DIR) \
   $(ALLINC) \
   $(CHIBIOS)/os/various/cpp_wrappers \

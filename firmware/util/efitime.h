@@ -12,7 +12,10 @@
 #include "efifeatures.h"
 #include "rusefi_types.h"
 #include "global.h"
+#include "error_handling.h"
 #include <rusefi/rusefi_time_math.h>
+#include <limits.h>
+
 
 #if EFI_PROD_CODE
 // for US_TO_NT_MULTIPLIER which is port-specific
@@ -23,8 +26,16 @@ inline int time2print(int64_t time) {
   return static_cast<int>(time);
 }
 
-inline /*64bit*/ efitick_t sumTickAndFloat(/*64bit*/efitick_t ticks, /*32it*/float extra) {
-  // we have a peculiar case of expression and precision here, for us it's the integer precision which is more important
+inline int32_t assertFloatFitsInto32BitsAndCast(const char *msg, float value) {
+  if (value < INT_MIN || value > INT_MAX) {
+    criticalError("%s value out of range: %f", msg, value);
+  }
+  return (int32_t)value;
+}
+
+inline /*64bit*/ efitick_t sumTickAndFloat(/*64bit*/efitick_t ticks, /*32bit*/float extra) {
+  // we have a peculiar case of type compiler uses to evaluate expression vs precision here
+  // we need 64 bit precision not (lower) float precision
   // 32 bits is 11 or 23 seconds if US_TO_NT_MULTIPLIER = 168 like on kinetis/cypress
   // 32 bits is 500 or 1000 seconds if US_TO_NT_MULTIPLIER = 4 like on stm32
   // 'extra' is below 10 seconds here so we use 32 bit type for performance reasons

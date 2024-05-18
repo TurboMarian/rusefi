@@ -29,16 +29,22 @@ Release template (copy/paste this for new release):
 ### Added
  - new rusEFI console tab: Knock analyzer #6467
  - Suzuki K6A (NON VVTI Trigger) #6490
+ - explicit error if 32 bit java is used #6497
+ - configurable Open Loop Boost vertical axis #4778
 
 ### Fixed
  - knock logic not activated until any configuration change via TS #6462
  - VE Table have wrong units on Y-Axis #6479
+ - General Purpose PWM tables have wrong names on X-axis and Y-axis #6491
+ - Ignition scheduling errors after 40+ hours of uptime #6451
+ - luaSoftSparkSkip/luaHardSparkSkip probably bug #6528
 
 ### Breaking Changes
  - "60/2 VW" trigger wheel renamed to "60-2 Wrong Polarity" #988
  - exhaust VVTs now use it's onw Edge Select setting
  - removing weird 1+16 trigger wheel #6418
  - critical error in case of unneeded second channel #6419
+ - Open Loop Boost vertical axis needs to be configured #4778
 
 ## Unreleased
 

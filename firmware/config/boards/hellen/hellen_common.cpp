@@ -84,7 +84,7 @@ void setHellenEnPin(Gpio pin, bool enableBoardOnStartUp) {
 }
 
 void setHellenMegaEnPin(bool enableBoardOnStartUp) {
-    // H144_GP8 matches MM100_GP8 is used as PWR_EN on early mm100
+    // H144_GP8 matches MM100_GP8 which is used as PWR_EN on early mm100
     setHellenEnPin(H144_GP8, enableBoardOnStartUp); // OUT_PWR_EN
 }
 
@@ -108,6 +108,12 @@ void hellenBoardStandBy() {
  * 3) accelerometer main initialization if accelerometer feature is desired
  */
 extern OutputPin accelerometerChipSelect;
+
+void hellenMegaSdWithAccelerometer() {
+		setHellenSdCardSpi1();
+		// weird order of operations? i guess it does not really matter
+		hellenMegaAccelerometerPreInitCS2Pin();
+}
 
 void hellenMegaAccelerometerPreInitCS2Pin() {
 #if EFI_ONBOARD_MEMS

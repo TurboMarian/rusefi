@@ -372,8 +372,8 @@ struct gppwm_channel
 	gppwm_channel_e loadAxis;Selects the Y axis to use for the table.;
 	gppwm_channel_e rpmAxis;Selects the X axis to use for the table.;
 
-	int16_t[GPPWM_LOAD_COUNT] autoscale loadBins;;"load", 0.5, 0, -1000, 10000, 1
-	int16_t[GPPWM_RPM_COUNT] rpmBins;;"RPM", 1, 0, -30000, 30000, 0
+	int16_t[GPPWM_LOAD_COUNT] autoscale loadBins;;"", 0.5, 0, -1000, 10000, 1
+	int16_t[GPPWM_RPM_COUNT] rpmBins;;"", 1, 0, -30000, 30000, 0
 	uint8_t[GPPWM_LOAD_COUNT x GPPWM_RPM_COUNT] autoscale table;;"duty", 0.5, 0, 0, 100, 1
 end_struct
 
@@ -804,8 +804,8 @@ bit is_enabled_spi_2
 	bit verboseKLine
 	bit idleIncrementalPidCic
 	bit enableAemXSeries;AEM X-Series or rusEFI Wideband
-! 'enableAemXSeries' is the 31st bit here, you would need another bit region if more bits are desired
-	bit doNotUse1x5_overdwell_protection
+	bit unused32nd
+! 'unused32nd' is the 32nd bit here, you would need another bit region if more bits are desired
 
 	brain_input_pin_e[LOGIC_ANALYZER_CHANNEL_COUNT iterate] logicAnalyzerPins;
 	pin_output_mode_e mainRelayPinMode;
@@ -1192,7 +1192,7 @@ int16_t tps2Max;Full throttle#2. tpsMax value as 10 bit ADC value. Not Voltage!\
 	bit startRequestPinInverted,"Inverted","Normal"
 	bit tcu_rangeSensorPulldown
 	bit skipBoardCanDash
-	bit unusedBit_503_19
+	bit brakePedalPinInverted,"Inverted","Normal"
 	bit devBit0
 	bit devBit1
 	bit devBit2
@@ -1741,7 +1741,7 @@ uint8_t[BOOST_LOAD_COUNT x BOOST_RPM_COUNT] autoscale boostTableOpenLoop;;"", {1
 uint8_t[BOOST_RPM_COUNT] autoscale boostRpmBins;;"RPM", 100, 0, 0, 25000, 0
 
 uint8_t[BOOST_LOAD_COUNT x BOOST_RPM_COUNT] autoscale boostTableClosedLoop;;"", 2, 0, 0, 3000, 0
-uint8_t[BOOST_LOAD_COUNT] boostTpsBins;;"%", 1, 0, 0, 100, 0
+uint8_t[BOOST_LOAD_COUNT] boostTpsBins;;"", 1, 0, 0, 100, 0
 
 uint8_t[PEDAL_TO_TPS_SIZE x PEDAL_TO_TPS_SIZE] pedalToTpsTable;;"%", 1, 0, 0, 100, 0
 uint8_t[PEDAL_TO_TPS_SIZE] pedalToTpsPedalBins;;"%", 1, 0, 0, 120, 0
@@ -2029,6 +2029,10 @@ end_struct
 #define ts_show_sync_cam true
 #define INJECTOR_1_NAME "Injector #1"
 #define INJECTOR_2_NAME "Injector #2"
+
+#define ts_show_tps2_error true
+#define ts_show_clutch_up true
+#define ts_show_clutch_down true
 
 #define GAUGE_NAME_LUA_0 "Lua Gauge 1"
 #define GAUGE_NAME_LUA_1 "Lua Gauge 2"
@@ -2410,6 +2414,7 @@ end_struct
 #define ts_show_ign_key_switch false
 #define ts_show_ford_toyota_tps_pps true
 #define ts_show_ign_key_analog_input false
+#define ts_show_vehicle_speed_sensor true
 #define ts_show_output_diag false
 #define ts_show_top_level_can_menu true
 #define ts_show_tle8888 false

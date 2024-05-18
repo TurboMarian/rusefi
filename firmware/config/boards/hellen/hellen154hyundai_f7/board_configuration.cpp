@@ -15,28 +15,27 @@
 #include "hellen_meta.h"
 
 static void setInjectorPins() {
-//	engineConfiguration->injectionPins[0] = Gpio::MC33810_0_OUT_0;
-//	engineConfiguration->injectionPins[1] = Gpio::MC33810_0_OUT_1;
-//	engineConfiguration->injectionPins[2] = Gpio::MC33810_0_OUT_2;
-//	engineConfiguration->injectionPins[3] = Gpio::MC33810_0_OUT_3;
+	engineConfiguration->injectionPins[0] = Gpio::MC33810_0_OUT_0;
+	engineConfiguration->injectionPins[1] = Gpio::MC33810_0_OUT_1;
+	engineConfiguration->injectionPins[2] = Gpio::MC33810_0_OUT_2;
+	engineConfiguration->injectionPins[3] = Gpio::MC33810_0_OUT_3;
 }
 
 static void setIgnitionPins() {
-//	engineConfiguration->ignitionPins[0] = Gpio::MC33810_0_GD_0;
-//	engineConfiguration->ignitionPins[1] = Gpio::MC33810_0_GD_1;
-//	engineConfiguration->ignitionPins[2] = Gpio::MC33810_0_GD_2;
-//	engineConfiguration->ignitionPins[3] = Gpio::MC33810_0_GD_3;
+	engineConfiguration->ignitionPins[0] = Gpio::MC33810_0_GD_0;
+	engineConfiguration->ignitionPins[1] = Gpio::MC33810_0_GD_1;
+	engineConfiguration->ignitionPins[2] = Gpio::MC33810_0_GD_2;
+	engineConfiguration->ignitionPins[3] = Gpio::MC33810_0_GD_3;
 }
 
 static void setupDefaultSensorInputs() {
 	engineConfiguration->vvtMode[0] = VVT_SINGLE_TOOTH;
 	engineConfiguration->vvtMode[1] = VVT_SINGLE_TOOTH;
 
-    engineConfiguration->vehicleSpeedSensorInputPin = Gpio::H144_IN_VSS;
+    engineConfiguration->vehicleSpeedSensorInputPin = Gpio::H144_IN_D_4;
 
-	setTPS1Inputs(H144_IN_TPS, H144_IN_AUX1);
-
-	setPPSInputs(EFI_ADC_3, EFI_ADC_14);
+	setTPS1Inputs(H144_IN_TPS, H144_IN_TPS2);
+	setPPSInputs(H144_IN_PPS, H144_IN_PPS2);
 
 	engineConfiguration->map.sensor.hwChannel = H144_IN_MAP1;
 
@@ -48,24 +47,22 @@ static void setupDefaultSensorInputs() {
 }
 
 void setBoardConfigOverrides() {
+	/* Force 3.3V PWR_EN as MC33810 is powered from this power line */
+	setHellenMegaEnPin();
 	setHellenVbatt();
 
-	setHellenSdCardSpi2();
+	hellenMegaSdWithAccelerometer();
+
+	/* MC33810, ETB1 and WASTGATE1 */
+	enableHellenSpi3();
 
     setDefaultHellenAtPullUps();
 
 	// trigger inputs
-	engineConfiguration->triggerInputPins[1] = Gpio::Unassigned;
+	engineConfiguration->triggerInputPins[0] = Gpio::H144_IN_D_1;
 	// Direct hall-only cam input
-	// exhaust input same on both revisions
-//	engineConfiguration->camInputs[1] = Gpio::H144_IN_D_AUX4;
-
-  //  int16_t hellenBoardId = engine->engineState.hellenBoardId;
-
-//  hellenBoardId == BOARD_ID_154HYUNDAI_C || hellenBoardId == BOARD_ID_154HYUNDAI_D
-//		engineConfiguration->triggerInputPins[0] = Gpio::H144_IN_SENS2;
-//		engineConfiguration->camInputs[0] = Gpio::H144_IN_SENS3;
-
+	engineConfiguration->camInputs[0] = Gpio::H144_IN_D_2;
+	engineConfiguration->camInputs[1] = Gpio::H144_IN_D_3;
 
 		// todo You would not believe how you invert TLE9201 #4579
 		engineConfiguration->stepperDcInvertedPins = true;
@@ -101,15 +98,15 @@ void setBoardDefaultConfiguration() {
 
 	setHellenCan();
 
-//	engineConfiguration->fuelPumpPin = Gpio::H144_OUT_IO9;
-//	engineConfiguration->fanPin = Gpio::H144_OUT_IO7;
-//	engineConfiguration->mainRelayPin = Gpio::H144_OUT_IO3;	// pin: 111a
-//	// BK1 uses wire, BK2 uses CANbus
-//	engineConfiguration->malfunctionIndicatorPin = Gpio::H144_OUT_PWM8;
-//
-//	engineConfiguration->brakePedalPin = Gpio::H144_IN_RES3;
-//	engineConfiguration->clutchUpPin = Gpio::H144_IN_RES2;
-//	engineConfiguration->acSwitch = Gpio::H144_IN_RES1;
+	engineConfiguration->fuelPumpPin = Gpio::H144_OUT_IO9;
+	engineConfiguration->fanPin = Gpio::H144_OUT_IO7;
+	engineConfiguration->mainRelayPin = Gpio::H144_OUT_IO3;	// pin: 111a
+	// BK1 uses wire, BK2 uses CANbus
+	engineConfiguration->malfunctionIndicatorPin = Gpio::H144_OUT_PWM8;
+
+	engineConfiguration->brakePedalPin = Gpio::H144_IN_RES3;
+	engineConfiguration->clutchUpPin = Gpio::H144_IN_RES2;
+	engineConfiguration->acSwitch = Gpio::H144_IN_RES1;
 
 	// "required" hardware is done - set some reasonable defaults
 	setupDefaultSensorInputs();
@@ -144,7 +141,7 @@ static const struct mc33810_config mc33810 = {
 	.spi_config = {
 		.circular = false,
 		.end_cb = NULL,
-		// SPI3_CS_33810 OUT_PWM1
+		// SPI3_CS_33810 OUT_PWM1 H144_OUT_PWM1
 		.ssport = GPIOD,
 		.sspad = 13,
 		.cr1 =
@@ -166,22 +163,31 @@ static const struct mc33810_config mc33810 = {
 		[2] = {.port = GPIOD, .pad = 11},	/* H144_LS_3 inj 3 */
 		[3] = {.port = GPIOD, .pad = 10},	/* H144_LS_4 inj 4 */
 		/* ignition pre-drivers */
-		[4] = {.port = GPIOC, .pad = 13},	/* H144_IGN_1 */
-		[5] = {.port = GPIOE, .pad = 5},	/* H144_IGN_2 */
-		[6] = {.port = GPIOE, .pad = 4},	/* H144_IGN_3 */
-		[7] = {.port = GPIOE, .pad = 3},	/* H144_IGN_4 */
+		[4] = {.port = GPIOG, .pad = 5},	/* H144_OUT_IO4 */
+		[5] = {.port = GPIOD, .pad = 2},	/* H144_OUT_IO5 */
+		[6] = {.port = GPIOG, .pad = 11},	/* H144_OUT_IO6 */
+		[7] = {.port = GPIOG, .pad = 2},	/* H144_OUT_IO11 */
 	},
 	.en = {.port = GPIOG, .pad = 9} // H144_GP_IO4 hopefully
 };
 
 /*BOARD_WEAK*/ void boardInitHardware() {
+	static OutputPin spi3CsEtb;
+	static OutputPin spi3CsWastegate;
+
+	spi3CsEtb.initPin("spi3-cs-etb", H_SPI3_CS);
+	spi3CsEtb.setValue(1);
+	spi3CsWastegate.initPin("spi3-cs-wg", Gpio::H144_GP_IO6);
+	spi3CsWastegate.setValue(1);
+	// mc33810 takes care of the CS on it's own
+//	static OutputPin spi3CsMc33810;
+//	spi3CsMc33810.initPin("spi3-cs-mc33810", Gpio::H144_OUT_PWM1);
+//	spi3CsMc33810.setValue(1);
+
     #if (BOARD_MC33810_COUNT > 0)
       gpio_pin_markUsed(mc33810.spi_config.ssport, mc33810.spi_config.sspad, "mc33810 CS");
       palSetPadMode(mc33810.spi_config.ssport, mc33810.spi_config.sspad, PAL_MODE_OUTPUT_PUSHPULL);
 
-//      addConsoleAction("mc33810", [](){
-//        mc33810_add(Gpio::MC33810_0_OUT_0, 0, &mc33810);
-//      });
       auto voltage = Sensor::get(SensorType::BatteryVoltage);
       int ret = mc33810_add(Gpio::MC33810_0_OUT_0, 0, &mc33810);
       efiPrintf("*****************+ mc33810_add %d +******************* %f", ret, voltage);
