@@ -49,6 +49,10 @@ static void disengageStarterIfNeeded() {
     }
 }
 
+PUBLIC_API_WEAK bool isCrankingSuppressed() {
+  return false;
+}
+
 void slowStartStopButtonCallback() {
   if (!isIgnVoltage()) {
     // nothing to crank if we are powered only via USB
@@ -65,11 +69,20 @@ void slowStartStopButtonCallback() {
         return;
     }
 
+  if (engine->rpmCalculator.isStopped()) {
+    if (engineConfiguration->requireFootOnBrakeToCrank && !engine->brakePedalSwitchedState) {
+      return;
+    }
+
+    if (isCrankingSuppressed()) {
+      return;
+    }
+  }
+
 	bool startStopState = engine->startStopState.startStopButtonDebounce.readPinEvent();
 
 	if (startStopState && !engine->engineState.startStopState) {
 		// we are here on transition from 0 to 1
-		// TODO: huh? looks like 'stop engine' feature is broken?! we invoke 'toggle' method under "from off to on" condition?!
 		onStartStopButtonToggle();
 	}
 	// todo: we shall extract start_stop.txt from engine_state.txt

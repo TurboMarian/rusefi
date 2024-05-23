@@ -755,6 +755,9 @@ float getOutputValueByName(const char *name) {
 // sadDwellRatioCounter
 		case -2146292012:
 			return engine->outputChannels.sadDwellRatioCounter;
+// injectionPrimingCounter
+		case 1526237246:
+			return engine->outputChannels.injectionPrimingCounter;
 // totalFuelCorrection
 #if EFI_ENGINE_CONTROL
 		case -1779658835:
@@ -951,6 +954,11 @@ float getOutputValueByName(const char *name) {
 #if EFI_LAUNCH_CONTROL
 		case -978523544:
 			return engine->launchController.isValidInputPin;
+#endif
+// isAfterLaunch
+#if EFI_LAUNCH_CONTROL
+		case 1702192078:
+			return engine->launchController.isAfterLaunch;
 #endif
 // activateSwitchCondition
 #if EFI_LAUNCH_CONTROL

@@ -13,6 +13,7 @@
 void initLaunchControl();
 
 enum class LaunchCondition {
+	PreLaunch,
 	Launch,
 	NotMet
 };
@@ -27,8 +28,9 @@ public:
 	bool isInsideSpeedCondition() const;
 	bool isInsideTpsCondition() const;
 	bool isInsideSwitchCondition();
-	LaunchCondition isInsideRPMCondition(int rpm) const;
-	LaunchCondition isLaunchConditionMet(int rpm);
+	LaunchCondition calculateRPMLaunchCondition(int rpm);
+	bool isInsideRPMCondition(int rpm);
+	bool isLaunchConditionMet(int rpm);
 
 	bool isLaunchSparkRpmRetardCondition() const;
 	bool isLaunchFuelRpmRetardCondition() const;

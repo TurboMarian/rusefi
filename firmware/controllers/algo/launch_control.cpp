@@ -73,22 +73,46 @@ bool LaunchControlBase::isInsideTpsCondition() const {
 	return engineConfiguration->launchTpsThreshold < tps.Value;
 }
 
-/**
- * Condition is true as soon as we are above LaunchRpm
- */
-LaunchCondition LaunchControlBase::isInsideRPMCondition(int rpm) const {
-	int launchRpm = engineConfiguration->launchRpm;
-	return (launchRpm < rpm) ? LaunchCondition::Launch : LaunchCondition::NotMet;
+LaunchCondition LaunchControlBase::calculateRPMLaunchCondition(const int rpm) {
+	const int launchRpm = engineConfiguration->launchRpm;
+	const int preLaunchRpm = launchRpm - engineConfiguration->launchRpmWindow;
+	if (rpm < preLaunchRpm) {
+		return LaunchCondition::NotMet;
+	} else if (launchRpm <= rpm) {
+		return LaunchCondition::Launch;
+	} else {
+		return LaunchCondition::PreLaunch;
+	}
 }
 
-LaunchCondition LaunchControlBase::isLaunchConditionMet(int rpm) {
-	LaunchCondition rpmLaunchCondition = isInsideRPMCondition(rpm);
+bool LaunchControlBase::isInsideRPMCondition(const int rpm) {
+	const LaunchCondition rpmLaunchCondition = calculateRPMLaunchCondition(rpm);
+	bool result = false;
+	switch (rpmLaunchCondition) {
+		case LaunchCondition::NotMet: {
+			isAfterLaunch = false;
+			break;
+		}
+		case LaunchCondition::PreLaunch: {
+			result = isAfterLaunch;
+			break;
+		}
+		case LaunchCondition::Launch: {
+			isAfterLaunch = true;
+			result = true;
+			break;
+		}
+	}
+	return result;
+}
+
+bool LaunchControlBase::isLaunchConditionMet(const int rpm) {
 	activateSwitchCondition = isInsideSwitchCondition();
-	rpmCondition = (rpmLaunchCondition == LaunchCondition::Launch);
+	rpmCondition = isInsideRPMCondition(rpm);
 	speedCondition = isInsideSpeedCondition();
 	tpsCondition = isInsideTpsCondition();
 
-	return ((speedCondition && activateSwitchCondition && tpsCondition) == true) ? rpmLaunchCondition : LaunchCondition::NotMet;
+	return speedCondition && activateSwitchCondition && rpmCondition && tpsCondition;
 }
 
 LaunchControlBase::LaunchControlBase() {
@@ -107,7 +131,7 @@ void LaunchControlBase::update() {
 	}
 
 	int rpm = Sensor::getOrZero(SensorType::Rpm);
-	combinedConditions = isLaunchConditionMet(rpm) == LaunchCondition::Launch;
+	combinedConditions = isLaunchConditionMet(rpm);
 
 	//and still recalculate in case user changed the values
 	retardThresholdRpm = engineConfiguration->launchRpm

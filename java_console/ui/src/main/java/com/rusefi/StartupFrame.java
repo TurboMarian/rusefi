@@ -7,6 +7,7 @@ import com.rusefi.core.ui.FrameHelper;
 import com.rusefi.io.LinkManager;
 import com.rusefi.io.serial.BaudRateHolder;
 import com.rusefi.maintenance.DriverInstall;
+import com.rusefi.maintenance.MaintenanceUtil;
 import com.rusefi.maintenance.StLinkFlasher;
 import com.rusefi.maintenance.ProgramSelector;
 import com.rusefi.ui.LogoHelper;
@@ -23,6 +24,7 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Date;
 import java.util.List;
 
 import static com.devexperts.logging.Logging.getLogging;
@@ -67,8 +69,9 @@ public class StartupFrame {
     private final JLabel noPortsMessage = new JLabel("Scanning ports...");
 
     public StartupFrame() {
-        String title = "rusEFI console version " + Launcher.CONSOLE_VERSION;
+        String title = "rusEFI console " + Launcher.CONSOLE_VERSION;
         log.info(title);
+        noPortsMessage.setForeground(Color.red);
         frame = FrameHelper.createFrame(title).getFrame();
         frame.addWindowListener(new WindowAdapter() {
             @Override
@@ -155,6 +158,8 @@ public class StartupFrame {
 //            realHardwarePanel.add(new FirmwareFlasher(FirmwareFlasher.IMAGE_FILE, "ST-LINK Program Firmware", "Default firmware version for most users").getButton());
             JComponent updateHelp = ProgramSelector.createHelpButton();
 
+            JLabel comp = binaryModificationControl();
+            realHardwarePanel.add(comp, "right, wrap");
             realHardwarePanel.add(updateHelp, "right, wrap");
 
             // st-link is pretty advanced use-case, real humans do not have st-link as of 2021
@@ -203,7 +208,7 @@ public class StartupFrame {
         if (logo != null)
             rightPanel.add(logo);
         rightPanel.add(LogoHelper.createUrlLabel());
-        rightPanel.add(new JLabel("Version " + Launcher.CONSOLE_VERSION));
+        rightPanel.add(new JLabel("Console " + Launcher.CONSOLE_VERSION));
 
         JPanel content = new JPanel(new BorderLayout());
         content.add(leftPanel, BorderLayout.WEST);
@@ -222,14 +227,28 @@ public class StartupFrame {
         }
     }
 
+    private static @NotNull JLabel binaryModificationControl() {
+        long binaryModificationTimestamp = MaintenanceUtil.getBinaryModificationTimestamp();
+        String fileTimestampText = binaryModificationTimestamp == 0 ? "firmware file not found" : ("Files " + new Date(binaryModificationTimestamp).toString());
+        return new JLabel(fileTimestampText);
+    }
+
     private void applyKnownPorts(SerialPortScanner.AvailableHardware currentHardware) {
         List<SerialPortScanner.PortResult> ports = currentHardware.getKnownPorts();
         log.info("Rendering available ports: " + ports);
         connectPanel.setVisible(!ports.isEmpty());
-        noPortsMessage.setText(NO_PORTS_FOUND);
-        noPortsMessage.setVisible(ports.isEmpty());
 
-        applyPortSelectionToUIcontrol(ports);
+
+        boolean hasEcuOrBootloader = applyPortSelectionToUIcontrol(ports);
+        if (ports.isEmpty()) {
+            noPortsMessage.setText(NO_PORTS_FOUND);
+        } else {
+            noPortsMessage.setText("Make sure you are disconnected from TunerStudio");
+        }
+
+        noPortsMessage.setVisible(ports.isEmpty() || !hasEcuOrBootloader);
+
+
         UiUtils.trueLayout(connectPanel);
     }
 
@@ -282,10 +301,16 @@ public class StartupFrame {
         SerialPortScanner.INSTANCE.stopTimer();
     }
 
-    private void applyPortSelectionToUIcontrol(List<SerialPortScanner.PortResult> ports) {
+    private boolean applyPortSelectionToUIcontrol(List<SerialPortScanner.PortResult> ports) {
         comboPorts.removeAllItems();
+        boolean hasEcuOrBootloader = false;
         for (final SerialPortScanner.PortResult port : ports) {
             comboPorts.addItem(port);
+            if (port.type == SerialPortScanner.SerialPortType.Ecu ||
+                port.type == SerialPortScanner.SerialPortType.EcuWithOpenblt ||
+                port.type == SerialPortScanner.SerialPortType.OpenBlt) {
+                hasEcuOrBootloader = true;
+            }
         }
         String defaultPort = getConfig().getRoot().getProperty(ConsoleUI.PORT_KEY);
         if (!PersistentConfiguration.getBoolProperty(ALWAYS_AUTO_PORT)) {
@@ -293,6 +318,7 @@ public class StartupFrame {
         }
 
         trueLayout(comboPorts);
+        return hasEcuOrBootloader;
     }
 
     private static JComboBox<String> createSpeedCombo() {
