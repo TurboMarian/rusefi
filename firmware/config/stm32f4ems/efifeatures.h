@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <rusefi/true_false.h>
+
 #define EFI_GPIO_HARDWARE TRUE
 
 #ifndef SENT_CHANNELS_NUM
@@ -18,6 +20,18 @@
 
 #ifndef EFI_BOOST_CONTROL
 #define EFI_BOOST_CONTROL TRUE
+#endif
+
+#ifndef EFI_BOSCH_YAW
+#define EFI_BOSCH_YAW FALSE
+#endif
+
+#ifndef EFI_WIFI
+#define EFI_WIFI FALSE
+#endif
+
+#ifndef EFI_WS2812
+#define EFI_WS2812 FALSE
 #endif
 
 #ifndef EFI_DAC
@@ -34,6 +48,10 @@
 
 #ifndef EFI_BACKUP_SRAM
 #define EFI_BACKUP_SRAM TRUE
+#endif
+
+#ifndef EFI_HELLA_OIL
+#define EFI_HELLA_OIL FALSE
 #endif
 
 #ifndef EFI_USE_OPENBLT
