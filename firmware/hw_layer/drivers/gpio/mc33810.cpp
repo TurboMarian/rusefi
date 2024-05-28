@@ -15,7 +15,7 @@
  * Masks bits/inputs numbers:
  * 0..3   - OUT1 .. 3 - Low-Side Injector drivers, 4.5A max
  *						driven through DIN0 .. 3 or SPI (not supported)
- * 4..7   -  GD0 .. 3 - Gate Driver outputs - IGBT of MOSFET pre-drivers,
+ * 4..7   -  GD0 .. 3 - Gate Driver outputs - IGBT or MOSFET pre-drivers,
  *						driven throug GIN0 .. 3 or SPI in GPGD mode (not supported)
  */
 
@@ -53,7 +53,9 @@ typedef enum {
 #define MC_CMD_SPARK(spark)				(0x4000 | ((spark) & 0x0fff))
 /* unused
 #define MC_CMD_END_SPARK_FILTER(filt)	(0x5000 | ((filt) & 0x0003))
+*/
 #define MC_CMD_DAC(dac)					(0x6000 | ((dac) & 0x0fff))
+/* unused
 #define MC_CMD_GPGD_SHORT_THRES(sh)		(0x7000 | ((sh) & 0x0fff))
 #define MC_CMD_GPGD_SHORT_DUR(dur)		(0x8000 | ((dur) & 0x0fff))
 #define MC_CMD_GPGD_FAULT_OP(op)		(0x9000 | ((op) & 0x0f0f))
@@ -123,6 +125,7 @@ struct Mc33810 : public GpioChip {
 
 	// internal functions
 	int spi_rw(uint16_t tx, uint16_t* rx);
+	int spi_rw_array(const uint16_t *tx, uint16_t *rx, int n);
 	int update_output_and_diag();
 
 	int chip_init();
@@ -177,7 +180,7 @@ static const char* mc33810_pin_names[MC33810_OUTPUTS] = {
 /*==========================================================================*/
 
 inline bool isCor(uint16_t rx) {
-  return rx & REP_FLAG_COR;
+	return rx & REP_FLAG_COR;
 }
 
 /**
@@ -244,6 +247,75 @@ int Mc33810::spi_rw(uint16_t tx, uint16_t *rx_ptr)
 }
 
 /**
+ * @return <0 in case of communication error or invalid argument
+ */
+int Mc33810::spi_rw_array(const uint16_t *tx, uint16_t *rx, int n)
+{
+	int ret = 0;
+	SPIDriver *spi = cfg->spi_bus;
+
+	if (n <= 0) {
+		return -2;
+	}
+
+	/* Acquire ownership of the bus. */
+	spiAcquireBus(spi);
+	/* Setup transfer parameters. */
+	spiStart(spi, &cfg->spi_config);
+
+	for (int i = 0; i < n; i++) {
+		/* Slave Select assertion. */
+		spiSelect(spi);
+		/* data transfer */
+		uint16_t rxdata = spiPolledExchange(spi, tx[i]);
+
+		if (rx)
+			rx[i] = rxdata;
+		/* Slave Select de-assertion. */
+		spiUnselect(spi);
+
+		/* Parse reply */
+		if (recentTx != MC_CMD_INVALID) {
+			/* update statistic counters - common flags */
+			if (rxdata & REP_FLAG_RESET)
+				rst_cnt++;
+			if (isCor(rxdata))
+				cor_cnt++;
+
+			if (((TX_GET_CMD(recentTx) >= 0x1) && (TX_GET_CMD(recentTx) <= 0xa)) ||
+				 (recentTx == MC_CMD_READ_REG(REG_ALL_STAT))) {
+				/* if reply on previous command is ALL STATUS RESPONSE */
+				all_status_value = rxdata;
+				all_status_updated = true;
+				/* update statistic counters - ALL STATUS flags */
+				if (rxdata & REP_FLAG_SOR)
+					sor_cnt++;
+				/* ignore NFM */
+			} else {
+				/* Some READ REGISTER reply with address != REG_ALL_STAT */
+				if (rxdata & REP_FLAG_OV)
+					ov_cnt++;
+				if (rxdata & REP_FLAG_LV)
+					lv_cnt++;
+			}
+		}
+
+		/* store currently tx'ed value to know what to expect on next rx */
+		recentTx = tx[i];
+
+		if (ret < 0) {
+			recentTx = MC_CMD_INVALID;
+			break;
+		}
+	}
+	/* Ownership release. */
+	spiReleaseBus(spi);
+
+	/* no errors for now */
+	return ret;
+}
+
+/**
  * @brief MC33810 send output state data.
  * @details Sends ORed data to register, also receive diagnostic.
  */
@@ -252,82 +324,38 @@ int Mc33810::update_output_and_diag()
 {
 	int ret = 0;
 
-	/* TODO: lock? */
+	uint16_t out_data = o_state & (~o_direct_mask);
+	const uint16_t tx[] = {
+		// we will get ALL STATUS RESPONSE as reply on following commad
+		// value will be stored inside spi_rw_array() call, no need to care
+		// TODO: WTF?
+		(uint16_t)MC_CMD_DRIVER_EN(out_data),
+		MC_CMD_READ_REG(REG_OUT10_FAULT),
+		MC_CMD_READ_REG(REG_OUT32_FAULT),
+		MC_CMD_READ_REG(REG_GPGD_FAULT),
+		MC_CMD_READ_REG(REG_IGN_FAULT),
+		MC_CMD_READ_REG(REG_ALL_STAT)
+	};
+	uint16_t rx[efi::size(tx)];
 
 	/* we need to get updated status */
 	all_status_updated = false;
 
-	/* if any pin is driven over SPI */
-	if (o_direct_mask != 0xff) {
-		uint16_t out_data;
+	ret = spi_rw_array(tx, rx, efi::size(tx));
 
-		out_data = o_state & (~o_direct_mask);
-		ret = spi_rw(MC_CMD_DRIVER_EN(out_data), NULL);
-		if (ret)
-			return ret;
-		o_state_cached = o_state;
-	}
+	if (ret == 0) {
+		/* the content of the requested register is transmitted with the
+		 * next SPI transmission */
 
-	/* this complicated logic to save few spi transfers in case we will receive status as reply on other command */
-	if (!all_status_updated) {
-		ret = spi_rw(MC_CMD_READ_REG(REG_ALL_STAT), NULL);
-		if (ret)
-			return ret;
-	}
-	/* get reply */
-	if (!all_status_updated) {
-		ret = spi_rw(MC_CMD_READ_REG(REG_ALL_STAT), NULL);
-		if (ret)
-			return ret;
-	}
-	/* now we have updated ALL STATUS register in chip data */
+		/* TODO: lock? */
+		out_fault[0] = rx[1 + 1];
+		out_fault[1] = rx[2 + 1];
+		gp_fault = rx[3 + 1];
+		ign_fault = rx[4 + 1];
 
-	/* check OUTx (injectors) first */
-	if (all_status_value & 0x000f) {
-		/* request diagnostic of OUT0 and OUT1 */
-		ret = spi_rw(MC_CMD_READ_REG(REG_OUT10_FAULT), NULL);
-		if (ret)
-			return ret;
-		/* get diagnostic for OUT0 and OUT1 and request diagnostic for OUT2 and OUT3 */
-		ret = spi_rw(MC_CMD_READ_REG(REG_OUT32_FAULT), &out_fault[0]);
-		if (ret)
-			return ret;
-		/* get diagnostic for OUT2 and OUT2 and request ALL STATUS */
-		ret = spi_rw(MC_CMD_READ_REG(REG_ALL_STAT), &out_fault[1]);
-		if (ret)
-			return ret;
-	} else {
-		out_fault[0] = out_fault[1] = 0;
+		alive_cnt++;
+		/* TODO: unlock? */
 	}
-	/* check outputs in GPGD mode */
-	if (all_status_value & 0x00f0) {
-		/* request diagnostic of GPGD */
-		ret = spi_rw(MC_CMD_READ_REG(REG_GPGD_FAULT), NULL);
-		if (ret)
-			return ret;
-		/* get diagnostic for GPGD and request ALL STATUS */
-		ret = spi_rw(MC_CMD_READ_REG(REG_ALL_STAT), &gp_fault);
-		if (ret)
-			return ret;
-	} else {
-		gp_fault = 0;
-	}
-	/* check IGN  */
-	if (all_status_value & 0x0f00) {
-		/* request diagnostic of IGN */
-		ret = spi_rw(MC_CMD_READ_REG(REG_IGN_FAULT), NULL);
-		if (ret)
-			return ret;
-		/* get diagnostic for IGN and request ALL STATUS */
-		ret = spi_rw(MC_CMD_READ_REG(REG_ALL_STAT), &ign_fault);
-		if (ret)
-			return ret;
-	} else {
-		ign_fault = 0;
-	}
-
-	alive_cnt++;
-	/* TODO: unlock? */
 
 	return ret;
 }
@@ -399,7 +427,8 @@ int Mc33810::chip_init()
 	recentTx = MC_CMD_INVALID;
 
 	/* check SPI communication */
-	/* 0. set echo mode, chip number - don't care */
+	/* 0. set echo mode, chip number - don't care,
+	 * NOTE: chip replyes on NEXT spi transaction */
 	ret  = spi_rw(MC_CMD_SPI_CHECK, &rxSpiCheck);
 	/* 1. check loopback */
 	ret |= spi_rw(MC_CMD_READ_REG(REG_REV), &rx);
@@ -409,19 +438,19 @@ int Mc33810::chip_init()
 		goto err_exit;
 	}
 	if (rx != SPI_CHECK_ACK) {
-	  static Timer needBatteryMessage;
-	  float vBatt = Sensor::getOrZero(SensorType::BatteryVoltage);
-	  if (vBatt > 6 || needBatteryMessage.getElapsedSeconds() > 7) {
-	    needBatteryMessage.reset();
-	    const char *msg;
-	    if (rx == 0xffff) {
-	      msg = "No power?";
-	    } else if (isCor(rx)) {
-	      msg = "COR";
-	    } else {
-	      msg = "unexpected";
-	    }
-		  efiPrintf(DRIVER_NAME " spi loopback test failed [%d][%d][%s] vBatt=%f", rxSpiCheck, rx, msg, vBatt);
+		static Timer needBatteryMessage;
+		float vBatt = Sensor::getOrZero(SensorType::BatteryVoltage);
+		if (vBatt > 6 || needBatteryMessage.getElapsedSeconds() > 7) {
+			needBatteryMessage.reset();
+			const char *msg;
+			if (rx == 0xffff) {
+				msg = "No power?";
+			} else if (isCor(rx)) {
+				msg = "COR";
+			} else {
+				msg = "unexpected";
+			}
+			efiPrintf(DRIVER_NAME " spi loopback test failed [first 0x%04x][spi check 0x%04x][%s] vBatt=%f", rxSpiCheck, rx, msg, vBatt);
 		}
 		ret = -2;
 		goto err_exit;
@@ -434,7 +463,7 @@ int Mc33810::chip_init()
 		efiPrintf(DRIVER_NAME " revision failed");
 		goto err_exit;
 	}
-	if (rx & REP_FLAG_COR) {
+	if (isCor(rx)) {
 		efiPrintf(DRIVER_NAME " spi COR status");
 		ret = -3;
 		goto err_exit;
@@ -460,6 +489,31 @@ int Mc33810::chip_init()
 			goto err_exit;
 		}
 
+		uint16_t nomi_current = 0x0a;	// default = 5.5 A
+		float nomi = engineConfiguration->mc33810Nomi;
+		if ((nomi >= 3.0) && (nomi <= 10.75)) {
+			nomi_current = (nomi - 3.0) / 0.25;
+		}
+
+		uint16_t maxi_current = 0x08;	// default = 14.0 A
+		float maxi = engineConfiguration->mc33810Maxi;
+		if ((maxi >= 6.0) && (maxi <= 21.0)) {
+			maxi_current = maxi - 6.0;
+		}
+		uint16_t dac_cmd =
+			// Table 12. Nominal Current DAC Select
+			((nomi_current & 0x1f) << 0) |
+			// Table 10. Overlapping Dwell Compensation, defaul 35%
+			(0x4 << 5) |
+			// Table 13. Maximum Current DAC Select
+			((maxi_current & 0xf) << 8) |
+			0;
+		ret = spi_rw(MC_CMD_DAC(dac_cmd), NULL);
+		if (ret) {
+			efiPrintf(DRIVER_NAME " cmd dac");
+			goto err_exit;
+		}
+
 		/* update local configuration mask */
 		o_gpgd_mask =
 			(engineConfiguration->mc33810Gpgd0Mode << 4) |
@@ -469,7 +523,7 @@ int Mc33810::chip_init()
 
 		uint16_t mode_select_cmd =
 			/* set IGN/GP mode for GPx outputs: [7:4] to [11:8] */
-			((o_gpgd_mask & 0xf0) <<  4) |
+			((o_gpgd_mask & 0xf0) << 4) |
 			/* disable/enable retry after recovering from under/overvoltage */
 			(engineConfiguration->mc33810DisableRecoveryMode << 6) |
 			0;
@@ -613,7 +667,7 @@ int Mc33810::writePad(size_t pin, int value)
 
 brain_pin_diag_e Mc33810::getDiag(size_t pin)
 {
-	int val;
+	uint16_t val;
 	int diag = PIN_OK;
 
 	if (pin >= MC33810_DIRECT_OUTPUTS)

@@ -1,4 +1,4 @@
-// this section was generated automatically by rusEFI tool config_definition-all.jar based on (unknown script) integration/rusefi_config.txt Fri May 24 12:24:04 UTC 2024
+// this section was generated automatically by rusEFI tool config_definition-all.jar based on (unknown script) integration/rusefi_config.txt Tue May 28 02:54:05 UTC 2024
 // by class com.rusefi.output.CHeaderConsumer
 // begin
 #pragma once
@@ -664,12 +664,10 @@ struct engine_configuration_s {
 	 */
 	Gpio sdCardCsPin;
 	/**
-	 * set_can_tx_pin X
 	 * offset 32
 	 */
 	Gpio canTxPin;
 	/**
-	 * set_can_rx_pin X
 	 * offset 34
 	 */
 	Gpio canRxPin;
@@ -1217,7 +1215,6 @@ struct engine_configuration_s {
 	 * Electronic throttle pedal position first channel
 	 * See throttlePedalPositionSecondAdcChannel for second channel
 	 * See also tps1_1AdcChannel
-	 * set_analog_input_pin pps X
 	 * See throttlePedalUpVoltage and throttlePedalWOTVoltage
 	 * offset 580
 	 */
@@ -1697,7 +1694,7 @@ struct engine_configuration_s {
 	/**
 	 * offset 778
 	 */
-	uint16_t smoothRetardStartRpm;
+	uint16_t unusedacFanPin;
 	/**
 	 * offset 780
 	 */
@@ -2979,7 +2976,6 @@ struct engine_configuration_s {
 	 */
 	float throttlePedalSecondaryWOTVoltage;
 	/**
-	 * set can_baudrate
 	 * offset 1548
 	 */
 	can_baudrate_e canBaudRate;
@@ -3157,12 +3153,10 @@ struct engine_configuration_s {
 	 */
 	uint8_t alignmentFill_at_1567[1];
 	/**
-	 * set_can2_tx_pin X
 	 * offset 1568
 	 */
 	Gpio can2TxPin;
 	/**
-	 * set_can2_rx_pin X
 	 * offset 1570
 	 */
 	Gpio can2RxPin;
@@ -3912,7 +3906,7 @@ struct engine_configuration_s {
 	/**
 	 * offset 3261
 	 */
-	uint8_t auxiliarySetting1;
+	uint8_t unusedByteHere;
 	/**
 	 * If the requested activation time is below this angle, don't bother running the pump
 	 * units: deg
@@ -4547,8 +4541,20 @@ struct engine_configuration_s {
 	 */
 	MsIoBox_config_s msIoBox0;
 	/**
-	 * units: units
+	 * Nominal coil charge current, 0.25A step
+	 * units: A
 	 * offset 4020
+	 */
+	scaled_channel<uint8_t, 4, 1> mc33810Nomi;
+	/**
+	 * Maximum coil charge current, 1A step
+	 * units: A
+	 * offset 4021
+	 */
+	uint8_t mc33810Maxi;
+	/**
+	 * units: units
+	 * offset 4022
 	 */
 	uint8_t unusedOftenChangesDuringFirmwareUpdate[END_OF_CALIBRATION_PADDING];
 };
@@ -5616,4 +5622,4 @@ struct persistent_config_s {
 static_assert(sizeof(persistent_config_s) == 28156);
 
 // end
-// this section was generated automatically by rusEFI tool config_definition-all.jar based on (unknown script) integration/rusefi_config.txt Fri May 24 12:24:04 UTC 2024
+// this section was generated automatically by rusEFI tool config_definition-all.jar based on (unknown script) integration/rusefi_config.txt Tue May 28 02:54:05 UTC 2024

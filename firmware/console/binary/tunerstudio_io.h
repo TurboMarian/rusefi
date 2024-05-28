@@ -75,6 +75,7 @@ public:
 	bool in_sync = false;
 
 private:
+	bool isBigPacket(size_t size);
 	void writeCrcPacketLarge(uint8_t responseCode, const uint8_t* buf, size_t size);
 };
 
@@ -120,8 +121,6 @@ protected:
 	UARTConfig m_config;
 };
 #endif // HAL_USE_UART
-
-#define CRC_VALUE_SIZE 4
 
 // that's 1 second
 #define BINARY_IO_TIMEOUT TIME_MS2I(1000)

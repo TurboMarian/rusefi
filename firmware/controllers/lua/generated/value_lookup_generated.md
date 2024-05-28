@@ -511,9 +511,6 @@ Boost Voltage
 ### minimumBoostClosedLoopMap
 Minimum MAP before closed loop boost is enabled. Use to prevent misbehavior upon entering boost.
 
-### smoothRetardStartRpm
-null
-
 ### vehicleWeight
 
 
@@ -1570,9 +1567,6 @@ Delay before engaging the AC compressor. Set to 0 to engage immediately with no 
 ### hpfpCamLobes
 
 
-### auxiliarySetting1
-null
-
 ### hpfpMinAngle
 If the requested activation time is below this angle, don't bother running the pump
 
@@ -1824,6 +1818,12 @@ null
 
 ### tcu_rangeSensorBiasResistor
 
+
+### mc33810Nomi
+Nominal coil charge current, 0.25A step
+
+### mc33810Maxi
+Maximum coil charge current, 1A step
 
 ### tcu_shiftTime
 

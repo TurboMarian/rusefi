@@ -1,6 +1,6 @@
 package com.rusefi.config.generated;
 
-// this file was generated automatically by rusEFI tool config_definition-all.jar based on (unknown script) integration/rusefi_config.txt Fri May 24 23:15:47 UTC 2024
+// this file was generated automatically by rusEFI tool config_definition-all.jar based on (unknown script) integration/rusefi_config.txt Tue May 28 02:54:28 UTC 2024
 
 // by class com.rusefi.output.FileJavaFieldsConsumer
 import com.rusefi.config.*;
@@ -301,7 +301,7 @@ public class Fields {
 	public static final int ego_sensor_e_ES_Innovate_MTX_L = 1;
 	public static final int ego_sensor_e_ES_PLX = 4;
 	public static final int EGT_CHANNEL_COUNT = 8;
-	public static final int END_OF_CALIBRATION_PADDING = 200;
+	public static final int END_OF_CALIBRATION_PADDING = 198;
 	public static final int engine_configuration_s_size = 4220;
 	public static final int engine_load_mode_e_LM_ALPHA_N = 2;
 	public static final int engine_load_mode_e_LM_LUA = 3;
@@ -1195,6 +1195,7 @@ public class Fields {
 	public static final int SentEtbType_FORD_TYPE_1 = 2;
 	public static final int SentEtbType_GM_TYPE_1 = 1;
 	public static final int SentEtbType_NONE = 0;
+	public static final int SIGNATURE_HASH = 698508924;
 	public static final String SIMULATOR_TUNE_BIN_FILE_NAME = "generated/simulator_tune_image.bin";
 	public static final String SIMULATOR_TUNE_BIN_FILE_NAME_PREFIX = "generated/simulator_tune_image";
 	public static final String SIMULATOR_TUNE_BIN_FILE_NAME_SUFFIX = ".bin";
@@ -1450,7 +1451,7 @@ public class Fields {
 	public static final int TS_RESPONSE_UNDERRUN = 0x80;
 	public static final int TS_RESPONSE_UNRECOGNIZED_COMMAND = 0x83;
 	public static final char TS_SET_LOGGER_SWITCH = 'l';
-	public static final String TS_SIGNATURE = "rusEFI master.2024.05.25.f407-discovery.2476564791";
+	public static final String TS_SIGNATURE = "rusEFI master.2024.05.28.f407-discovery.698508924";
 	public static final char TS_SIMULATE_CAN = '>';
 	public static final char TS_SINGLE_WRITE_COMMAND = 'W';
 	public static final char TS_TEST_COMMAND = 't';
@@ -1844,7 +1845,7 @@ public class Fields {
 	public static final Field VERBOSECANBASEADDRESS = Field.create("VERBOSECANBASEADDRESS", 772, FieldType.INT).setScale(1.0).setBaseOffset(0);
 	public static final Field MC33_HVOLT = Field.create("MC33_HVOLT", 776, FieldType.INT8).setScale(1.0).setBaseOffset(0);
 	public static final Field MINIMUMBOOSTCLOSEDLOOPMAP = Field.create("MINIMUMBOOSTCLOSEDLOOPMAP", 777, FieldType.INT8).setScale(1.0).setBaseOffset(0);
-	public static final Field SMOOTHRETARDSTARTRPM = Field.create("SMOOTHRETARDSTARTRPM", 778, FieldType.INT16).setScale(1.0).setBaseOffset(0);
+	public static final Field UNUSEDACFANPIN = Field.create("UNUSEDACFANPIN", 778, FieldType.INT16).setScale(1.0).setBaseOffset(0);
 	public static final String[] gppwm_channel_e = {"Zero", "TPS", "MAP", "CLT", "IAT", "Fuel Load", "Ignition Load", "Aux Temp 1", "Aux Temp 2", "Accel Pedal", "Battery Voltage", "VVT 1 I", "VVT 1 E", "VVT 2 I", "VVT 2 E", "Ethanol (Flex) %", "Aux Linear 1", "Aux Linear 2", "GPPWM Output 1", "GPPWM Output 2", "GPPWM Output 3", "GPPWM Output 4", "Lua Gauge 1", "Lua Gauge 2", "RPM", "Gear (detected)", "Baro pressure", "EGT 1", "EGT 2"};
 	public static final Field BOOSTOPENLOOPYAXIS = Field.create("BOOSTOPENLOOPYAXIS", 780, FieldType.INT8, gppwm_channel_e).setScale(1.0).setBaseOffset(0);
 	public static final Field L9779SPIDEVICE = Field.create("L9779SPIDEVICE", 781, FieldType.INT8).setScale(1.0).setBaseOffset(0);
@@ -2637,7 +2638,7 @@ public class Fields {
 	public static final Field HPFPCAMLOBES = Field.create("HPFPCAMLOBES", 3259, FieldType.INT8).setScale(1.0).setBaseOffset(0);
 	public static final String[] hpfp_cam_e = {"NONE", "Intake 1", "Exhaust 1", "Intake 2", "Exhaust 2"};
 	public static final Field HPFPCAM = Field.create("HPFPCAM", 3260, FieldType.INT8, hpfp_cam_e).setScale(1.0).setBaseOffset(0);
-	public static final Field AUXILIARYSETTING1 = Field.create("AUXILIARYSETTING1", 3261, FieldType.INT8).setScale(1.0).setBaseOffset(0);
+	public static final Field UNUSEDBYTEHERE = Field.create("UNUSEDBYTEHERE", 3261, FieldType.INT8).setScale(1.0).setBaseOffset(0);
 	public static final Field HPFPMINANGLE = Field.create("HPFPMINANGLE", 3262, FieldType.INT8).setScale(1.0).setBaseOffset(0);
 	public static final Field ALIGNMENTFILL_AT_3263 = Field.create("ALIGNMENTFILL_AT_3263", 3263, FieldType.INT8).setScale(1.0).setBaseOffset(0);
 	public static final Field HPFPPUMPVOLUME = Field.create("HPFPPUMPVOLUME", 3264, FieldType.INT16).setScale(0.001).setBaseOffset(0);
@@ -2886,7 +2887,9 @@ public class Fields {
 	public static final String[] MsIoBoxVss = {"Off", "VR speed in (1, 2)", "Hall speed in (3, 4)", "All (1, 2, 3, 4)"};
 	public static final Field MSIOBOX0_VSS = Field.create("MSIOBOX0_VSS", 4017, FieldType.INT8, MsIoBoxVss).setScale(1.0).setBaseOffset(0);
 	public static final Field MSIOBOX0_ALIGNMENTFILL_AT_2 = Field.create("MSIOBOX0_ALIGNMENTFILL_AT_2", 4018, FieldType.INT8).setScale(1.0).setBaseOffset(0);
-	public static final Field UNUSEDOFTENCHANGESDURINGFIRMWAREUPDATE = Field.create("UNUSEDOFTENCHANGESDURINGFIRMWAREUPDATE", 4020, FieldType.INT8).setScale(1.0).setBaseOffset(0);
+	public static final Field MC33810NOMI = Field.create("MC33810NOMI", 4020, FieldType.INT8).setScale(0.25).setBaseOffset(0);
+	public static final Field MC33810MAXI = Field.create("MC33810MAXI", 4021, FieldType.INT8).setScale(1.0).setBaseOffset(0);
+	public static final Field UNUSEDOFTENCHANGESDURINGFIRMWAREUPDATE = Field.create("UNUSEDOFTENCHANGESDURINGFIRMWAREUPDATE", 4022, FieldType.INT8).setScale(1.0).setBaseOffset(0);
 	public static final Field ETBBIASBINS = Field.create("ETBBIASBINS", 4220, FieldType.FLOAT).setBaseOffset(0);
 	public static final Field ETBBIASVALUES = Field.create("ETBBIASVALUES", 4252, FieldType.FLOAT).setBaseOffset(0);
 	public static final Field IACPIDMULTTABLE = Field.create("IACPIDMULTTABLE", 4284, FieldType.INT8).setScale(0.05).setBaseOffset(0);
@@ -3515,7 +3518,7 @@ public class Fields {
 	VERBOSECANBASEADDRESS,
 	MC33_HVOLT,
 	MINIMUMBOOSTCLOSEDLOOPMAP,
-	SMOOTHRETARDSTARTRPM,
+	UNUSEDACFANPIN,
 	BOOSTOPENLOOPYAXIS,
 	L9779SPIDEVICE,
 	IMUTYPE,
@@ -4294,7 +4297,7 @@ public class Fields {
 	ETBJAMINTEGRATORLIMIT,
 	HPFPCAMLOBES,
 	HPFPCAM,
-	AUXILIARYSETTING1,
+	UNUSEDBYTEHERE,
 	HPFPMINANGLE,
 	ALIGNMENTFILL_AT_3263,
 	HPFPPUMPVOLUME,
@@ -4537,6 +4540,8 @@ public class Fields {
 	MSIOBOX0_ID,
 	MSIOBOX0_VSS,
 	MSIOBOX0_ALIGNMENTFILL_AT_2,
+	MC33810NOMI,
+	MC33810MAXI,
 	UNUSEDOFTENCHANGESDURINGFIRMWAREUPDATE,
 	ETBBIASBINS,
 	ETBBIASVALUES,

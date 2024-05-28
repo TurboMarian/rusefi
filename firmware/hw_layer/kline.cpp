@@ -1,3 +1,8 @@
+/**
+ * this file is mostly about SEFMJ early 2000s specific honda K-line protocol
+ * https://rusefi.com/forum/viewtopic.php?f=4&t=2514
+ */
+
 #include "pch.h"
 #include "kline.h"
 #include "hellen_meta.h"
@@ -123,8 +128,13 @@ void kLineThread(void*) {
                         efiPrintf("kline doSend");
                     }
                     int positiveCltWithHighishValueInCaseOfSensorIssue = maxI(1,
+#ifdef HW_HELLEN_HONDA
                         /* temporary while we are playing with calibration */
-                        engineConfiguration->auxiliarySetting1 + Sensor::get(SensorType::Clt).value_or(140)
+                        config->hondaKcltGaugeAdder
+#else
+  50
+#endif
+                         + Sensor::get(SensorType::Clt).value_or(140)
                     );
     // 125 about horizontal
     // 162 points at red mark, looks like gauge has hysteresis?
@@ -191,11 +201,6 @@ void initKLine() {
     }
 #ifdef EFI_KLINE
 	startKLine();
-
-    if (engineConfiguration->kLinePeriodUs == 0) {
-        engineConfiguration->kLinePeriodUs = 300 /* us*/;
-    }
-    engineConfiguration->kLineDoHondaSend = true;
 
     memset(kvalues, 0, sizeof(kvalues));
     kvalues[0] = 0x2;

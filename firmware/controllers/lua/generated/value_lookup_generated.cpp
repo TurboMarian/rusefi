@@ -517,9 +517,6 @@ float getConfigValueByName(const char *name) {
 // minimumBoostClosedLoopMap
 		case 596585178:
 			return engineConfiguration->minimumBoostClosedLoopMap;
-// smoothRetardStartRpm
-		case 300652254:
-			return engineConfiguration->smoothRetardStartRpm;
 // vehicleWeight
 		case 1549866701:
 			return engineConfiguration->vehicleWeight;
@@ -1576,9 +1573,6 @@ float getConfigValueByName(const char *name) {
 // hpfpCamLobes
 		case -1256141959:
 			return engineConfiguration->hpfpCamLobes;
-// auxiliarySetting1
-		case 298385452:
-			return engineConfiguration->auxiliarySetting1;
 // hpfpMinAngle
 		case 1494394654:
 			return engineConfiguration->hpfpMinAngle;
@@ -1831,6 +1825,12 @@ float getConfigValueByName(const char *name) {
 // tcu_rangeSensorBiasResistor
 		case -1480283119:
 			return engineConfiguration->tcu_rangeSensorBiasResistor;
+// mc33810Nomi
+		case -695344665:
+			return engineConfiguration->mc33810Nomi;
+// mc33810Maxi
+		case -695395485:
+			return engineConfiguration->mc33810Maxi;
 // tcu_shiftTime
 		case -1658957891:
 			return config->tcu_shiftTime;
@@ -2693,11 +2693,6 @@ bool setConfigValueByName(const char *name, float value) {
 		case 596585178:
 	{
 		engineConfiguration->minimumBoostClosedLoopMap = (int)value;
-		return 1;
-	}
-		case 300652254:
-	{
-		engineConfiguration->smoothRetardStartRpm = (int)value;
 		return 1;
 	}
 		case 1549866701:
@@ -4460,11 +4455,6 @@ bool setConfigValueByName(const char *name, float value) {
 		engineConfiguration->hpfpCamLobes = (int)value;
 		return 1;
 	}
-		case 298385452:
-	{
-		engineConfiguration->auxiliarySetting1 = (int)value;
-		return 1;
-	}
 		case 1494394654:
 	{
 		engineConfiguration->hpfpMinAngle = (int)value;
@@ -4883,6 +4873,16 @@ bool setConfigValueByName(const char *name, float value) {
 		case -1480283119:
 	{
 		engineConfiguration->tcu_rangeSensorBiasResistor = value;
+		return 1;
+	}
+		case -695344665:
+	{
+		engineConfiguration->mc33810Nomi = (int)value;
+		return 1;
+	}
+		case -695395485:
+	{
+		engineConfiguration->mc33810Maxi = (int)value;
 		return 1;
 	}
 		case -1658957891:
