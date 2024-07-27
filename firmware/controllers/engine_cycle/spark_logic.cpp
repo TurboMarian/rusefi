@@ -581,7 +581,7 @@ void onTriggerEventSparkLogic(int rpm, efitick_t edgeTimestamp, float currentPha
 #endif // EFI_LAUNCH_CONTROL
 
 #if EFI_ANTILAG_SYSTEM && EFI_LAUNCH_CONTROL
-/*
+
        if (engine->antilagController.isAntilagCondition) {
 			if (engine->ALSsoftSparkLimiter.shouldSkip()) {
 				continue;
@@ -595,8 +595,13 @@ void onTriggerEventSparkLogic(int rpm, efitick_t edgeTimestamp, float currentPha
 		);
 
 			auto ALSSkipRatio = engine->antilagController.timingALSSkip;
-            engine->ALSsoftSparkLimiter.setTargetSkipRatio(ALSSkipRatio/100);
-*/
+
+            float luaSoftSparkSkip = ALSSkipRatio / 1000.0f;
+            float tractionControlSparkSkip = 0.0f;
+            float launchControllerSparkSkipRatio = 0.0f;
+
+engine->ALSsoftSparkLimiter.updateTargetSkipRatio(luaSoftSparkSkip, tractionControlSparkSkip, launchControllerSparkSkipRatio);
+
 #endif // EFI_ANTILAG_SYSTEM
 
 			scheduleSparkEvent(limitedSpark, event, rpm, edgeTimestamp, currentPhase, nextPhase);
