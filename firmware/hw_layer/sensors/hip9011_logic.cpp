@@ -75,9 +75,7 @@ int HIP9011::sendCommandGetReply(uint8_t cmd, uint8_t *reply) {
  * @return frequency band we are interested in
  */
 float HIP9011::getBand(DEFINE_HIP_PARAMS) {
-	return GET_CONFIG_VALUE(knockBandCustom) == 0 ?
-			HIP9011_BAND(GET_CONFIG_VALUE(cylinderBore)) :
-			GET_CONFIG_VALUE(knockBandCustom);
+	return bore2frequency(GET_CONFIG_VALUE(cylinderBore));
 }
 
 int HIP9011::getBandIndex(DEFINE_HIP_PARAMS) {

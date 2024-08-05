@@ -533,7 +533,7 @@ ThermistorConf iat;
 
 	float launchTimingRetard;;"deg", 1, 0, -180, 180, 2
 	int hip9011PrescalerAndSDO;value '6' for 8MHz hw osc\nread hip9011 datasheet for details\ntodo split into two bit fields;"integer", 1, 0, 0, 32, 0
-	float knockBandCustom;Use any online calculator and input your bore.\nReminder that in some cases double frequency works better!;"kHz", 1, 0, 0, 20, 2
+	float unusedFloatHere
 
 uint16_t autoscale displacement;Engine displacement in litres;"L", 0.001, 0, 0, 65, 3
 
@@ -563,7 +563,10 @@ firing_order_e firingOrder;
 uint8_t justATempTest
 Gpio communityCommsLedPid
 
-float cylinderBore;Cylinder diameter in mm.;"mm", 1, 0, 0, 20000, 2
+#define CYLINDER_BORE_UNITS "mm"
+#define CYLINDER_BORE_TOOLTIP "Cylinder diameter in mm"
+#define CYLINDER_BORE_MULTIPLIER 1
+float cylinderBore;@@CYLINDER_BORE_TOOLTIP@@;@@CYLINDER_BORE_UNITS@@, @@CYLINDER_BORE_MULTIPLIER@@, 0, 0, 2000, 2
 
 #define engine_load_mode_e_enum "Speed Density", "MAF Air Charge", "Alpha-N", "Lua"
 
@@ -1043,7 +1046,7 @@ end_struct
 	bit fuelClosedLoopCorrectionEnabled;Enables lambda sensor closed loop feedback for fuelling.
 	bit oddFireEngine;On even fire engines with even number of cylinders we go wasted spark during cranking. Use this setting to disable wasted spark cranking on odd fire engines.
 	bit alwaysWriteSdCard;Write SD card log even when powered by USB
-	bit unusedFancy4
+	bit knockDetectionUseDoubleFrequency,"second harmonic","first harmonic";Second harmonic (aka double) is usually quieter background noise
 	bit yesUnderstandLocking,"yes","no"
 	bit silentTriggerError;Sometimes we have a performance issue while printing error
 	bit useLinearCltSensor
@@ -1338,10 +1341,6 @@ tle8888_mode_e tle8888mode;
 
 	pin_output_mode_e fan2PinMode;
 	float fuelReferencePressure;This is the pressure at which your injector flow is known.\nFor example if your injectors flow 400cc/min at 3.5 bar, enter 350kpa here.;"kPa", 1, 0, 50, 700000, 0
-
-	float[CRANKING_ENRICH_COUNT x CRANKING_ENRICH_COUNT] postCrankingFactor;;"mult", 1, 0, 1, 3, 2
-	float[CRANKING_ENRICH_COUNT] postCrankingDurationBins;;"count", 1, 0, 0, 1000, 0
-	int16_t[CRANKING_ENRICH_COUNT] postCrankingCLTBins;;"C", 1, 0, -100, @@CLT_UPPER_LIMIT@@, 0
 
 	ThermistorConf auxTempSensor1
 	ThermistorConf auxTempSensor2
@@ -1712,6 +1711,11 @@ end_struct
 ! note that this magic field name is used by LiveDataParserPanel
 engine_configuration_s engineConfiguration;
 
+	float[CRANKING_ENRICH_COUNT x CRANKING_ENRICH_COUNT] postCrankingFactor;;"mult", 1, 0, 1, 3, 2
+	float[CRANKING_ENRICH_COUNT] postCrankingDurationBins;;"count", 1, 0, 0, 1000, 0
+	int16_t[CRANKING_ENRICH_COUNT] postCrankingCLTBins;;"C", 1, 0, -100, @@CLT_UPPER_LIMIT@@, 0
+
+
 		float[ETB_BIAS_CURVE_LENGTH] etbBiasBins;target TPS value, 0 to 100%\nTODO: use int8 data date once we template interpolation method;"target TPS position", 1, 0, 0, 100, 0
 		float[ETB_BIAS_CURVE_LENGTH] etbBiasValues;PWM bias, 0 to 100%;"ETB duty cycle bias", 1, 0, -100, 100, 2
 
@@ -2042,6 +2046,12 @@ float[BOOST_CURVE_SIZE] cltBoostCorr;;"ratio", 1, 0, 0, 5, 2
 float[BOOST_CURVE_SIZE] iatBoostCorrBins;;"C", 1, 0, -100, @@CLT_UPPER_LIMIT@@, 2
 float[BOOST_CURVE_SIZE] iatBoostCorr;;"ratio", 1, 0, 0, 5, 2
 
+float[BOOST_CURVE_SIZE] cltBoostAdderBins;;"C", 1, 0, -100, @@CLT_UPPER_LIMIT@@, 2
+float[BOOST_CURVE_SIZE] cltBoostAdder;;"", 1, 0, 0, 5, 2
+
+float[BOOST_CURVE_SIZE] iatBoostAdderBins;;"C", 1, 0, -100, @@CLT_UPPER_LIMIT@@, 2
+float[BOOST_CURVE_SIZE] iatBoostAdder;;"", 1, 0, 0, 5, 2
+
 @@BOARD_CONFIG_FROM_FILE@@
 
 end_struct
@@ -2055,6 +2065,7 @@ end_struct
 #define CAM_1_MODE_NAME "Cam mode (intake)"
 #define CAM_2_MODE_NAME "Cam mode (exhaust)"
 #define ts_show_cam2 true
+#define ts_show_reboot_to_dfu true
 #define ts_show_bank2_cam1 true
 #define ts_show_bank2_cam2 true
 #define ts_show_globalTriggerAngleOffset true
@@ -2360,6 +2371,20 @@ end_struct
 #define ts_show_cylinder_10 true
 #define ts_show_cylinder_11 true
 #define ts_show_cylinder_12 true
+
+#define ts_show_fuel_trims true
+#define ts_show_fuel_trim_cylinder_1 true
+#define ts_show_fuel_trim_cylinder_2 true
+#define ts_show_fuel_trim_cylinder_3 true
+#define ts_show_fuel_trim_cylinder_4 true
+#define ts_show_fuel_trim_cylinder_5 true
+#define ts_show_fuel_trim_cylinder_6 true
+#define ts_show_fuel_trim_cylinder_7 true
+#define ts_show_fuel_trim_cylinder_8 true
+#define ts_show_fuel_trim_cylinder_9 true
+#define ts_show_fuel_trim_cylinder_10 true
+#define ts_show_fuel_trim_cylinder_11 true
+#define ts_show_fuel_trim_cylinder_12 true
 
 #define ts_show_analog_divider true
 #define ts_show_spi true

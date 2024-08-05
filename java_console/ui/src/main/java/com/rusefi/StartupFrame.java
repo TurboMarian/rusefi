@@ -2,6 +2,7 @@ package com.rusefi;
 
 import com.devexperts.logging.Logging;
 import com.rusefi.core.io.BundleUtil;
+import com.rusefi.core.net.ConnectionAndMeta;
 import com.rusefi.core.preferences.storage.PersistentConfiguration;
 import com.rusefi.core.ui.FrameHelper;
 import com.rusefi.io.LinkManager;
@@ -134,13 +135,17 @@ public class StartupFrame {
         connectButton.addActionListener(e -> connectButtonAction(comboSpeeds));
 
         leftPanel.add(realHardwarePanel);
-        leftPanel.add(miscPanel);
+        if (ConnectionAndMeta.useSimulator()) {
+            leftPanel.add(miscPanel);
+        }
 
         if (FileLog.isWindows()) {
             JPanel topButtons = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
             topButtons.add(ToolButtons.createShowDeviceManagerButton());
             topButtons.add(DriverInstall.createButton());
-            topButtons.add(ToolButtons.createPcanConnectorButton());
+            if (ConnectionAndMeta.usePCAN()) {
+                topButtons.add(ToolButtons.createPcanConnectorButton());
+            }
             realHardwarePanel.add(topButtons, "right, wrap");
         }
         realHardwarePanel.add(connectPanel, "right, wrap");
@@ -230,16 +235,23 @@ public class StartupFrame {
 
     public static @NotNull JLabel binaryModificationControl() {
         long binaryModificationTimestamp = MaintenanceUtil.getBinaryModificationTimestamp();
-        String fileTimestampText = binaryModificationTimestamp == 0 ? "firmware file not found" : ("Files " + new Date(binaryModificationTimestamp).toString());
-        JLabel jLabel = new JLabel(fileTimestampText);
-        jLabel.setToolTipText("Click to copy");
-        jLabel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                Toolkit.getDefaultToolkit().getSystemClipboard()
-                    .setContents(new StringSelection(fileTimestampText), null);
-            }
-        });
+        JLabel jLabel;
+        if (binaryModificationTimestamp == 0) {
+            jLabel = new JLabel("firmware file not found");
+            jLabel.setForeground(Color.red);
+        } else {
+            String fileTimestampText = "Files " + new Date(binaryModificationTimestamp);
+            jLabel = new JLabel(fileTimestampText);
+            jLabel.setToolTipText("Click to copy");
+            jLabel.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    Toolkit.getDefaultToolkit().getSystemClipboard()
+                        .setContents(new StringSelection(fileTimestampText), null);
+                }
+            });
+        }
+
         return jLabel;
     }
 

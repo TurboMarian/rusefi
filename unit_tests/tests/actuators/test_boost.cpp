@@ -5,6 +5,11 @@
 using ::testing::_;
 using ::testing::StrictMock;
 
+static Map2D<BOOST_CURVE_SIZE, float, float> testBoostCltCorr { "clt" };
+static Map2D<BOOST_CURVE_SIZE, float, float> testBoostIatCorr { "iat" };
+static Map2D<BOOST_CURVE_SIZE, float, float> testBoostCltAdder { "clt (adder)" };
+static Map2D<BOOST_CURVE_SIZE, float, float> testBoostIatAdder { "iat (adder)" };
+
 TEST(BoostControl, Setpoint) {
 	MockVp3d targetMap;
 
@@ -20,8 +25,13 @@ TEST(BoostControl, Setpoint) {
 	// Should return unexpected without a pedal map cfg'd
 	EXPECT_EQ(bc.getSetpoint(), unexpected);
 
-	// Now init with mock target map
-	bc.init(nullptr, nullptr, &targetMap, nullptr);
+    testBoostCltCorr.initTable(config->cltBoostCorr, config->cltBoostCorrBins);
+    testBoostIatCorr.initTable(config->iatBoostCorr, config->iatBoostCorrBins);
+    testBoostCltAdder.initTable(config->cltBoostAdder, config->cltBoostAdderBins);
+    testBoostIatAdder.initTable(config->iatBoostAdder, config->iatBoostAdderBins);
+
+    // Now init with mock target map
+	bc.init(nullptr, nullptr, &targetMap, testBoostCltCorr, testBoostIatCorr, testBoostCltAdder, testBoostIatAdder, nullptr);
 
 	// Should still return unxepected since TPS is invalid
 	EXPECT_EQ(bc.getSetpoint(), unexpected);
@@ -61,7 +71,22 @@ TEST(BoostControl, OpenLoop) {
 	// Without table set, should return unexpected
 	EXPECT_EQ(bc.getOpenLoop(0), unexpected);
 
-	bc.init(nullptr, &openMap, nullptr, nullptr);
+
+    testBoostCltCorr.initTable(config->cltBoostCorr, config->cltBoostCorrBins);
+    testBoostIatCorr.initTable(config->iatBoostCorr, config->iatBoostCorrBins);
+    testBoostCltAdder.initTable(config->cltBoostAdder, config->cltBoostAdderBins);
+    testBoostIatAdder.initTable(config->iatBoostAdder, config->iatBoostAdderBins);
+
+    bc.init(
+        nullptr,
+        &openMap,
+        nullptr,
+        testBoostCltCorr,
+        testBoostIatCorr,
+        testBoostCltAdder,
+        testBoostIatAdder,
+        nullptr
+    );
 
 	// Should pass TPS value thru
 	Sensor::setMockValue(SensorType::Tps1, 47.0f);
@@ -78,7 +103,21 @@ TEST(BoostControl, BoostOpenLoopYAxis)
 	EngineTestHelper eth(engine_type_e::TEST_ENGINE);
 	BoostController bc;
 
-	bc.init(nullptr, &openMap, nullptr, nullptr);
+    testBoostCltCorr.initTable(config->cltBoostCorr, config->cltBoostCorrBins);
+    testBoostIatCorr.initTable(config->iatBoostCorr, config->iatBoostCorrBins);
+    testBoostCltAdder.initTable(config->cltBoostAdder, config->cltBoostAdderBins);
+    testBoostIatAdder.initTable(config->iatBoostAdder, config->iatBoostAdderBins);
+
+	bc.init(
+        nullptr,
+        &openMap,
+        nullptr,
+        testBoostCltCorr,
+        testBoostIatCorr,
+        testBoostCltAdder,
+        testBoostIatAdder,
+        nullptr
+    );
 
 	constexpr float RPM_TEST_VALUE = 42.0f;
 	Sensor::setMockValue(SensorType::Rpm, RPM_TEST_VALUE);
@@ -233,7 +272,16 @@ TEST(BoostControl, TestClosedLoop) {
 		-100, 100 // min/max output
 	};
 
-	bc.init(nullptr, nullptr, nullptr, &pidCfg);
+	bc.init(
+        nullptr,
+        nullptr,
+        nullptr,
+        testBoostCltCorr,
+        testBoostIatCorr,
+        testBoostCltAdder,
+        testBoostIatAdder,
+        &pidCfg
+    );
 
 	// Enable closed loop
 	engineConfiguration->boostType = CLOSED_LOOP;
@@ -277,7 +325,7 @@ TEST(BoostControl, SetOutput) {
 	EXPECT_NO_THROW(bc.setOutput(25.0f));
 
 	// Init with mock PWM device and ETB
-	bc.init(&pwm, nullptr, nullptr, nullptr);
+	bc.init(&pwm, nullptr, nullptr, testBoostCltCorr, testBoostIatCorr, testBoostCltAdder, testBoostIatAdder, nullptr);
 	engine->etbControllers[0] = &etb;
 
 	bc.setOutput(25.0f);

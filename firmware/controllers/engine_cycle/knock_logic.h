@@ -12,6 +12,8 @@
 
 int getCylinderKnockBank(uint8_t cylinderNumber);
 
+#define bore2frequency(bore)		(900 / (CONST_PI * (bore) / 2))
+
 class KnockControllerBase : public EngineModule, public knock_controller_s {
 public:
     KnockControllerBase() {
@@ -22,7 +24,7 @@ public:
 	void onFastCallback() override;
 
 	// onKnockSenseCompleted is the callback from the knock sense driver to report a sensed knock level
-	bool onKnockSenseCompleted(uint8_t cylinderNumber, float dbv, float frequency, efitick_t lastKnockTime);
+	void onKnockSenseCompleted(uint8_t cylinderNumber, float dbv, float frequency, efitick_t lastKnockTime);
 
 	float getKnockRetard() const;
 	uint32_t getKnockCount() const;

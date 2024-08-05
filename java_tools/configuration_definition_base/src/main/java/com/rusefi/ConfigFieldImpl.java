@@ -3,6 +3,7 @@ package com.rusefi;
 import com.devexperts.logging.Logging;
 import com.opensr5.ini.field.EnumIniField;
 import com.rusefi.core.Pair;
+import com.rusefi.core.net.ConnectionAndMeta;
 import com.rusefi.output.ConfigStructure;
 import com.rusefi.output.JavaFieldsConsumer;
 
@@ -15,6 +16,7 @@ import static com.devexperts.logging.Logging.getLogging;
 import static com.rusefi.TokenUtils.tokenizeWithBraces;
 
 import com.rusefi.parse.TypesHelper;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -90,7 +92,7 @@ public class ConfigFieldImpl implements ConfigField {
         this.arraySizes = arraySizes;
         this.tsInfo = tsInfo == null ? null : state.getVariableRegistry().applyVariables(tsInfo);
         this.isIterate = isIterate;
-        if (tsInfo != null) {
+        if (tsInfo != null && !ConnectionAndMeta.flexibleAutoscale()) {
             String[] tokens = getTokens();
             if (tokens.length > 1) {
                 String scale = tokens[1].trim();
@@ -175,13 +177,7 @@ public class ConfigFieldImpl implements ConfigField {
         String[] nameTokens = nameString.split("\\s");
         String name = nameTokens[nameTokens.length - 1];
 
-        boolean hasAutoscale = false;
-        for (String autoscaler : nameTokens) {
-            if (autoscaler.equals("autoscale")) {
-                hasAutoscale = true;
-                break;
-            }
-        }
+        boolean hasAutoscale = isHasAutoscale(nameTokens);
 
         String comment = matcher.group(10);
         validateComment(comment);
@@ -216,6 +212,17 @@ public class ConfigFieldImpl implements ConfigField {
             log.debug("comment " + comment);
 
         return field;
+    }
+
+    private static boolean isHasAutoscale(String[] nameTokens) {
+        boolean hasAutoscale = false;
+        for (String autoscaler : nameTokens) {
+            if (autoscaler.equals("autoscale")) {
+                hasAutoscale = true;
+                break;
+            }
+        }
+        return hasAutoscale;
     }
 
     private static void validateComment(String comment) {
@@ -317,6 +324,8 @@ public class ConfigFieldImpl implements ConfigField {
 
     @Override
     public String autoscaleSpec() {
+        if (!hasAutoscale)
+            return null;
         Pair<Integer, Integer> pair = autoscaleSpecPair();
         if (pair == null)
             return null;
@@ -343,6 +352,10 @@ public class ConfigFieldImpl implements ConfigField {
             throw new IllegalArgumentException("Second comma-separated token expected in [" + tsInfo + "] for " + name);
 
         String scale = tokens[1].trim();
+        return getScaleSpec(scale, name);
+    }
+
+    public static @NotNull Pair<Integer, Integer> getScaleSpec(String scale, String name) {
         double factor;
         if (scale.startsWith("{") && scale.endsWith("}")) {
             // Handle just basic division, not a full fledged eval loop
@@ -367,7 +380,7 @@ public class ConfigFieldImpl implements ConfigField {
         double accuracy = Math.abs((factor2 / factor) - 1.);
         if (accuracy > 0.0000001) {
             // Don't want to deal with exception propogation; this should adequately not compile
-            throw new IllegalStateException("$*@#$* Cannot accurately represent autoscale for " + tokens[1]);
+            throw new IllegalStateException("$*@#$* Cannot accurately represent autoscale for [" + scale + "] got " + accuracy);
         }
 
         return new Pair<>(mul, div);

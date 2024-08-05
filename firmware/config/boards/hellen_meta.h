@@ -87,9 +87,9 @@ void detectHellenBoardType();
 #define H144_OUT_PWM8 D12
 
 
-// also IO1/IO5 on rev 0.6
+// also IO1/IO5 on non-mega rev 0.6
 #define H144_GP_IO1 D4
-// also IO2/IO5 on rev 0.6
+// also IO2/IO5 on non-mega rev 0.6
 #define H144_GP_IO2 D7
 #define H144_GP_IO3 G10
 #define H144_GP_IO4 G9
@@ -168,8 +168,10 @@ void detectHellenBoardType();
 
 // AIN20 PA7
 #define H144_IN_AUX3 EFI_ADC_7
+#define H144_IN_AUX3_DIGITAL A7
 // AIN22 PC5
 #define H144_IN_AUX4 EFI_ADC_15
+#define H144_IN_AUX4_DIGITAL С5
 
 // A1 AIN1 no code to use ADC3 as analog, ADC3_IN9 for knock
 #define H144_IN_SENS1 F3

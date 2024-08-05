@@ -28,6 +28,10 @@
 
 #include "runtime_state.h"
 
+#ifndef EFI_STORAGE_MFS_EXTERNAL
+#define EFI_STORAGE_MFS_EXTERNAL FALSE
+#endif
+
 static bool needToWriteConfiguration = false;
 
 /* if we use ChibiOS MFS for settings */
@@ -81,7 +85,7 @@ void setNeedToWriteConfiguration() {
 	needToWriteConfiguration = true;
 
 #if EFI_FLASH_WRITE_THREAD
-	if (allowFlashWhileRunning() || (EFI_STORAGE_MFS == TRUE)) {
+	if (allowFlashWhileRunning() || (EFI_STORAGE_MFS_EXTERNAL == TRUE)) {
 		// Signal the flash writer thread to wake up and write at its leisure
 		flashWriteSemaphore.signal();
 	}
@@ -93,8 +97,11 @@ bool getNeedToWriteConfiguration() {
 }
 
 void writeToFlashIfPending() {
+#if EFI_FLASH_WRITE_THREAD
 	// with a flash write thread, the schedule happens directly from
 	// setNeedToWriteConfiguration, so there's nothing to do here
+	return;
+#endif
 	if (allowFlashWhileRunning() || !getNeedToWriteConfiguration()) {
 		// Allow sensor timeouts again now that we're done (and a little time has passed)
 		Sensor::inhibitTimeouts(false);
@@ -140,7 +147,8 @@ void writeToFlashNow() {
 		needToWriteConfiguration = false;
 		return;
 	}
-	efiPrintf("Writing pending configuration...");
+	efiPrintf("Writing pending configuration... %d bytes", sizeof(persistentState));
+	efitick_t startNt = getTimeNowNt();
 
 	// Set up the container
 	persistentState.size = sizeof(persistentState);
@@ -181,7 +189,14 @@ void writeToFlashNow() {
 	startWatchdog();
 
 	if (isSuccess) {
-		efiPrintf("FLASH_SUCCESS");
+		efitick_t endNt = getTimeNowNt();
+		int elapsed_Ms = US2MS(NT2US(endNt - startNt));
+
+#if EFI_STORAGE_MFS == TRUE
+		efiPrintf("FLASH_SUCCESS after %d mS MFS status %d", elapsed_Ms, err);
+#else
+		efiPrintf("FLASH_SUCCESS after %d mS", elapsed_Ms);
+#endif
 	} else {
 		efiPrintf("Flashing failed");
 	}
@@ -333,6 +348,19 @@ static void rewriteConfig() {
 	writeToFlashNow();
 }
 
+#if EFI_STORAGE_MFS == TRUE
+static void eraseConfig() {
+	efitick_t startNt = getTimeNowNt();
+
+	mfs_error_t err;
+	err = mfsErase(&mfsd);
+
+	efitick_t endNt = getTimeNowNt();
+	int elapsed_Ms = US2MS(NT2US(endNt - startNt));
+	efiPrintf("erase done %d mS err %d", elapsed_Ms, err);
+}
+#endif
+
 void initFlash() {
 #if EFI_STORAGE_MFS == TRUE
 	boardInitMfs();
@@ -344,6 +372,8 @@ void initFlash() {
 	if (err < MFS_NO_ERROR) {
 		/* hm...? */
 	}
+
+	addConsoleAction("eraseconfig", eraseConfig);
 #endif
 
 	addConsoleAction("readconfig", readFromFlash);
@@ -361,7 +391,7 @@ void initFlash() {
 	addConsoleAction("rewriteconfig", rewriteConfig);
 
 #if EFI_FLASH_WRITE_THREAD
-	if (allowFlashWhileRunning()) {
+	if (allowFlashWhileRunning() || (EFI_STORAGE_MFS_EXTERNAL == TRUE)) {
 		chThdCreateStatic(flashWriteStack, sizeof(flashWriteStack), PRIO_FLASH_WRITE, flashWriteThread, nullptr);
 	}
 #endif

@@ -144,7 +144,7 @@ runs:
       run: |
         : Invoking Post-Checkout Action
         if [ -f .github/workflows/actions/post-checkout.sh ]; then
-          bash .github/workflows/actions/post-checkout.sh
+           bash .github/workflows/actions/post-checkout.sh
         fi
 
     - name: Find out white-label
@@ -296,6 +296,25 @@ runs:
           echo DONE: simulator
         fi
 
+    - name: Building bootloader separately
+      working-directory: ${{inputs.rusefi_dir}}/firmware
+      if: ${{ contains(inputs.artifacts, 'bootloader') }}
+      shell: bash
+      run: |
+        : Building bootloader separately
+        echo Building bootloader...
+        bash bin/compile.sh $BOARD_META_PATH bootloader
+        echo DONE: bootloader
+        ls -l bootloader/blbuild
+
+    - name: Invoking Post-bootloader Action
+      shell: bash
+      run: |
+        : Invoking Post-Checkout Action
+        if [ -f .github/workflows/actions/post-bootloader.sh ]; then
+           bash .github/workflows/actions/post-bootloader.sh
+        fi
+
     - name: Build Firmware
       working-directory: ${{inputs.rusefi_dir}}/firmware
       shell: bash
@@ -363,6 +382,10 @@ runs:
       run: |
         : Add Config to Commit
         git add ${{inputs.rusefi_dir}}/firmware/${META_OUTPUT_ROOT_FOLDER}*
+        : # TODO handle extra headers but only if those exist
+        : #if [ -d firmware ]; then
+        : #  git add firmware/extra*
+        : #fi
         OUT=$(git commit -m "Custom Auto-generated Configs" -m "[no ci]" 2>&1) || echo "commit failed, finding out why"
         if echo "$OUT" | grep 'nothing to commit'; then
           echo "Configs: looks like nothing to commit"
@@ -375,8 +398,8 @@ runs:
       shell: bash
       run: |
         : Add Connectors to Commit
-        if [ -d $BOARD_DIR/connectors ]; then
-          git add $BOARD_DIR/connectors/*
+        if [ -d connectors ]; then
+          git add connectors/*
         fi
         OUT=$(git commit -m "Auto-generated Connectors" -m "[no ci]" 2>&1) || echo "commit failed, finding out why"
         if echo "$OUT" | grep 'nothing to commit'; then
@@ -461,14 +484,14 @@ runs:
       if: ${{ contains(inputs.artifacts, 'bundle') }}
       uses: actions/upload-artifact@v4
       with:
-        name: ${{steps.find-out-white-label.outputs.white_label}}_bundle_${{env.SHORT_BOARD_NAME}}_2024-05-25.zip.zip
+        name: ${{steps.find-out-white-label.outputs.white_label}}_bundle_${{env.SHORT_BOARD_NAME}}_${{env.current_date}}.zip.zip
         path: ${{inputs.rusefi_dir}}/artifacts/${{steps.find-out-white-label.outputs.white_label}}_bundle_${{env.SHORT_BOARD_NAME}}.zip
 
     - name: Upload github action bundle autoupdate artifact
       if: ${{ contains(inputs.artifacts, 'autoupdate') }}
       uses: actions/upload-artifact@v4
       with:
-        name: ${{steps.find-out-white-label.outputs.white_label}}_bundle_${{env.SHORT_BOARD_NAME}}_autoupdate_2024-05-25.zip.zip
+        name: ${{steps.find-out-white-label.outputs.white_label}}_bundle_${{env.SHORT_BOARD_NAME}}_autoupdate_${{env.current_date}}.zip.zip
         path: ${{inputs.rusefi_dir}}/artifacts/${{steps.find-out-white-label.outputs.white_label}}_bundle_${{env.SHORT_BOARD_NAME}}_autoupdate.zip
 
     - uses: mukunku/tag-exists-action@v1.6.0

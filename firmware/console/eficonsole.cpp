@@ -260,6 +260,12 @@ void initializeConsole() {
 	addConsoleAction("test", [](){ /* do nothing */});
 	addConsoleActionI("echo", echo);
 	addConsoleAction("hello", sayHello);
+	#if EFI_USE_OPENBLT
+	  addConsoleAction("show_blt_version", [](){
+      	uint32_t bltBinVersion = getOpenBltVersion();
+      	efiPrintf("********************** blt=%lx %s version", bltBinVersion, bltBinVersion == BLT_CURRENT_VERSION ? "CURRENT" : "UNEXPECTED");
+	  });
+	#endif
 #if EFI_HAS_RESET
 	addConsoleAction("reset", scheduleReset);
 #endif

@@ -171,7 +171,8 @@ static KnockThread kt;
 
 void initSoftwareKnock() {
 	if (engineConfiguration->enableSoftwareKnock) {
-		knockFilter.configureBandpass(KNOCK_SAMPLE_RATE, 1000 * engineConfiguration->knockBandCustom, 3);
+	  float frequencyHz = 1000 * bore2frequency(engineConfiguration->cylinderBore);
+		knockFilter.configureBandpass(KNOCK_SAMPLE_RATE, engineConfiguration->knockDetectionUseDoubleFrequency ? 2 * frequencyHz : frequencyHz, 3);
 		adcStart(&KNOCK_ADC, nullptr);
 
 	#ifdef KNOCK_SPECTROGRAM
@@ -233,7 +234,7 @@ static void processLastKnockEvent() {
 	// looks like we have a defect float mainFreq = 0.f;
 
 #ifdef KNOCK_SPECTROGRAM
-	if(enableKnockSpectrogram) {
+	if (enableKnockSpectrogram) {
 		//ScopePerf perf(PE::KnockAnalyzer);
 
 		fft::fft_adc_sample(spectrogramData->window, ratio, sampleBuffer, spectrogramData->fftBuffer, SIZE);
@@ -244,8 +245,6 @@ static void processLastKnockEvent() {
 		float mainFreq = fft::get_main_freq(spectrogramData->amplitudes, spectrogramData->frequencies, SIZE / 2);
 
 		knockSpectorgramAddLine(mainFreq, spectrogramData->amplitudes, 60); // [60] to 25207.5kHz for optimize data size
-
-		//engineConfiguration->knockBandCustom = mainFreq / 1000; // need save max amplitude of all
 	}
 #endif
 

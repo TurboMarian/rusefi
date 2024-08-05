@@ -14,8 +14,6 @@ PCHSUB = unit_tests
 
 include $(PROJECT_DIR)/rusefi_rules.mk
 
-BOARDS_DIR = $(PROJECT_DIR)/config/boards
-
 # User may want to pass in a forced value for SANITIZE
 ifeq ($(SANITIZE),)
 	ifneq ($(OS),Windows_NT)
@@ -57,8 +55,6 @@ USE_OPT += -DEFI_UNIT_TEST=1 -DEFI_PROD_CODE=0 -DEFI_SIMULATOR=0
 # Pretend we are all different hardware so that all canned engine configs are included
 USE_OPT += -DHW_MICRO_RUSEFI=1 -DHW_PROTEUS=1 -DHW_FRANKENSO=1 -DHW_HELLEN=1 -DHW_HELLEN_NISSAN=1
 USE_OPT += -DHW_HELLEN_NB1=1 -DHW_HELLEN_NB2=1
-
-DDEFS += -DSHORT_BOARD_NAME=f407-discovery
 
 # C specific options here (added to USE_OPT).
 ifeq ($(USE_COPT),)
@@ -150,6 +146,13 @@ CPPWARN = -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-unused-v
 #USE_OPT += $(RUSEFI_OPT) -Wno-error=pedantic
 
 USE_OPT += -Werror=switch
+
+ifeq ($(OS),Windows_NT)
+   USE_OPT += -DIS_WINDOWS_COMPILER=1
+else
+   USE_OPT += -DIS_WINDOWS_COMPILER=0
+endif
+
 
 #
 # Compiler settings

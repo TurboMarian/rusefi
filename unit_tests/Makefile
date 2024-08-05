@@ -8,6 +8,8 @@ UNIT_TESTS_DIR=$(PROJECT_DIR)/../unit_tests
 
 US_TO_NT_MULTIPLIER = 100
 
+BOARDS_DIR = $(PROJECT_DIR)/config/boards
+
 # Imported source files and paths
 include $(PROJECT_DIR)/console/console.mk
 include $(PROJECT_DIR)/console/binary/tunerstudio.mk
@@ -15,6 +17,11 @@ include $(UNIT_TESTS_DIR)/test.mk
 include $(UNIT_TESTS_DIR)/tests/tests.mk
 include $(PROJECT_DIR)/../unit_tests/tests/util/test_util.mk
 include $(PROJECT_DIR)/common.mk
+
+ifneq ("$(wildcard $(BOARD_DIR)/board_unit_tests.mk)","")
+  # could depend on BOARDS_DIR
+  include $(BOARD_DIR)/board_unit_tests.mk
+endif
 
 RUSEFI_LIB = $(PROJECT_DIR)/libfirmware
 include $(RUSEFI_LIB)/util/util.mk
@@ -48,6 +55,7 @@ CPPSRC += $(ALLCPPSRC) \
 
 INCDIR += \
 	$(PCH_DIR) \
+	$(BOARDINC) \
 	$(UNIT_TESTS_DIR) \
 	$(ALLINC) \
 	$(PROJECT_DIR)/config/boards/hellen \

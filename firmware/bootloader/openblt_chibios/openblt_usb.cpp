@@ -11,7 +11,7 @@ extern blt_bool stayInBootloader;
 
 void Rs232Init() {
 #if (BOOT_BACKDOOR_ENTRY_TIMEOUT_MS == 0)
-	if (stayInBootloader)
+	if (stayInBootloader || (NvmVerifyChecksum() == BLT_FALSE))
 #endif
 	{
 	  // Set up USB serial

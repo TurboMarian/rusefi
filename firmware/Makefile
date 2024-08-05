@@ -129,6 +129,12 @@ ifeq ($(USE_LTO),)
   USE_OPT += -flto=auto
 endif
 
+ifeq ($(OS),Windows_NT)
+   USE_OPT += -DIS_WINDOWS_COMPILER=1
+else
+   USE_OPT += -DIS_WINDOWS_COMPILER=0
+endif
+
 # If enabled, this option allows to compile the application in THUMB mode.
 ifeq ($(USE_THUMB),)
   USE_THUMB = yes
@@ -380,8 +386,7 @@ OD   = $(TRGT)objdump
 SZ   = $(TRGT)size
 HEX  = $(CP) -O ihex
 BIN  = $(CP) -O binary
-# OpenBLT flasher expects srec files, but we create them in our bundle.mk, not in rules.mk
-#SREC = $(CP) -O srec
+# for srec files see bundle.mk
 
 # ARM-specific options here
 AOPT =

@@ -14,7 +14,6 @@
 #define EFI_HIP_9011_DEBUG EFI_HIP_9011
 #endif
 
-#define HIP9011_BAND(bore)		(900 / (CONST_PI * (bore) / 2))
 #define HIP9011_ANALOG_OUTPUT_MAX		5.0f
 #define HIP9011_DIGITAL_OUTPUT_MAX		0x03ff	/* 10 bit max value */
 #define HIP_INPUT_CHANNELS		2
@@ -52,21 +51,21 @@ public:
 #define DEFINE_PARAM_SUFFIX(x)
 #else
 
-#define PASS_HIP_PARAMS engineConfiguration->knockBandCustom, \
+#define PASS_HIP_PARAMS \
 		engineConfiguration->cylinderBore, \
 		engineConfiguration->hip9011Gain, \
 		engineConfiguration->hip9011PrescalerAndSDO, \
 		engineConfiguration->knockDetectionWindowStart, \
 		engineConfiguration->knockDetectionWindowEnd
 
-#define FORWARD_HIP_PARAMS knockBandCustom, \
+#define FORWARD_HIP_PARAMS \
 		cylinderBore, \
 		hip9011Gain, \
 		hip9011PrescalerAndSDO, \
 		knockDetectionWindowStart, \
 		knockDetectionWindowEnd
 
-#define DEFINE_HIP_PARAMS float knockBandCustom,\
+#define DEFINE_HIP_PARAMS \
 		float cylinderBore, \
 		float hip9011Gain, \
 		int hip9011PrescalerAndSDO, \

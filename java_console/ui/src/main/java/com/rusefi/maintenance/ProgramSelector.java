@@ -310,15 +310,20 @@ public class ProgramSelector {
 
         OpenbltJni.OpenbltCallbacks cb = makeOpenbltCallbacks(callbacks);
 
+        String fileName = FindFileHelper.findSrecFile();
+        if (fileName == null) {
+            callbacks.logLine(".srec image file not found");
+            callbacks.error();
+            return;
+        }
         try {
-            String fileName = FindFileHelper.findSrecFile();
             callbacks.logLine("flashSerial " + fileName);
             OpenbltJni.flashSerial(fileName, port, cb);
 
             callbacks.logLine("Update completed successfully!");
             callbacks.done();
         } catch (Throwable e) {
-            callbacks.logLine("Error: " + e.toString());
+            callbacks.logLine("Error: " + e);
             callbacks.error();
         } finally {
             OpenbltJni.stop(cb);
@@ -344,22 +349,22 @@ public class ProgramSelector {
         updateModeComboBox.removeAllItems();
         if (FileLog.isWindows()) {
             boolean requireBlt = FindFileHelper.isObfuscated();
-            if (hasSerialPorts && !requireBlt) {
-                updateModeComboBox.addItem(DFU_AUTO);
-            }
 
-            if (hasDfuDevice && !requireBlt) {
-                updateModeComboBox.addItem(DFU_MANUAL);
-                updateModeComboBox.addItem(DFU_ERASE);
-                if (DfuFlasher.haveBootloaderBinFile()) {
-                    updateModeComboBox.addItem(INSTALL_OPENBLT);
-                }
-            }
             if (!requireBlt) {
+                if (hasSerialPorts) {
+                    updateModeComboBox.addItem(DFU_AUTO);
+                }
+                if (hasDfuDevice) {
+                    updateModeComboBox.addItem(DFU_MANUAL);
+                    updateModeComboBox.addItem(DFU_ERASE);
+                    if (DfuFlasher.haveBootloaderBinFile()) {
+                        updateModeComboBox.addItem(INSTALL_OPENBLT);
+                    }
+                }
                 updateModeComboBox.addItem(DFU_SWITCH);
+                if (currentHardware.isStLinkConnected())
+                    updateModeComboBox.addItem(ST_LINK);
             }
-            if (currentHardware.isStLinkConnected())
-                updateModeComboBox.addItem(ST_LINK);
             if (currentHardware.isPCANConnected())
                 updateModeComboBox.addItem(OPENBLT_CAN);
             // todo: detect PCAN mode.addItem(OPENBLT_CAN);
