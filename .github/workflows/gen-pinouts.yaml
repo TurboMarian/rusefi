@@ -81,6 +81,8 @@ jobs:
           name: pinouts
           path: pinouts.tar.gz
 
-      # (Opcjonalnie) Krok 5: Usunięcie lokalnych plików pinouts
-      - name: Clean Up
-        run: rm -rf pinouts pinouts.tar.gz
+      # Krok 5: Zmiana Uprawnień i Usunięcie Plików (Opcjonalnie)
+      - name: Adjust Permissions and Clean Up
+        run: |
+          chmod -R u+w pinouts
+          rm -rf pinouts pinouts.tar.gz
