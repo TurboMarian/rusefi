@@ -70,6 +70,12 @@ jobs:
             "vr":"sienna"
             }
 
+      # Krok 5: Zmiana Uprawnień i Usunięcie Plików (Opcjonalnie)
+      - name: Adjust Permissions and Clean Up
+        run: |
+          chmod -R u+w pinouts
+          rm -rf pinouts pinouts.tar.gz
+          
       # Krok 3: Spakowanie Plików Pinouts
       - name: Compress Pinouts
         run: tar -czf pinouts.tar.gz pinouts
@@ -81,8 +87,4 @@ jobs:
           name: pinouts
           path: pinouts.tar.gz
 
-      # Krok 5: Zmiana Uprawnień i Usunięcie Plików (Opcjonalnie)
-      - name: Adjust Permissions and Clean Up
-        run: |
-          chmod -R u+w pinouts
-          rm -rf pinouts pinouts.tar.gz
+      
