@@ -1,118 +1,113 @@
 pins:
-  # Low side outputs
   - pin: 1
-    id: D2
+    id: E15
     class: outputs
-    function: Low Side Output
-    type: inj
-    ts_name: Injector 1
+    function: High Side Output
+    type: ign
+    ts_name: Ignition 1
     
   - pin: 2
-    id: C12
+    id: E14
     class: outputs
-    function: Low Side Output
-    type: inj
-    ts_name: Injector 2
-
+    function: High Side Output
+    type: ign
+    ts_name: Ignition 2
+    
   - pin: 3
-    id: C8
+    id: E13
     class: outputs
-    function: Low Side Output
-    type: inj
-    ts_name: Injector 3
+    function: High Side Output
+    type: ign
+    ts_name: Ignition 3
     
   - pin: 4
-    id: C7
+    id: E12
     class: outputs
-    function: Low Side Output
-    type: inj
-    ts_name: Injector 4
+    function: High Side Output
+    type: ign
+    ts_name: Ignition 4
     
   - pin: 5
-    id: C6
+    id: E11
     class: outputs
-    function: Low Side Output
-    type: inj
-    ts_name: Injector 5
+    function: High Side Output
+    type: ign
+    ts_name: Ignition 5
     
   - pin: 6
-    id: D15
+    id: E10
     class: outputs
-    function: Low Side Output
-    type: inj
-    ts_name: Injector 6
+    function: High Side Output
+    type: ign
+    ts_name: Ignition 6
     
   - pin: 7
-    id: D14
+    id: E9
     class: outputs
-    function: Low Side Output
-    type: inj
-    ts_name: Injector 7
+    function: High Side Output
+    type: ign
+    ts_name: Ignition 7
     
   - pin: 8
-    id: D13
+    id: E8
     class: outputs
-    function: Low Side Output
-    type: inj
-    ts_name: Injector 8
+    function: High Side Output
+    type: ign
+    ts_name: Ignition 8
 
     # Low side
 
   - pin: 9
+    id: D12
+    class: outputs
+    function: Low Side Output
+    type: ls
+    ts_name: Fuel pump output
+
+  - pin: 10
     id: D11
     class: outputs
     function: Low Side Output
     type: ls
     ts_name: Boost controler
 
-  - pin: 10
-    id: D8
-    class: outputs
-    function: Low Side Output
-    type: ls
-    ts_name: Low side output 1
-
   - pin: 11
-    id: D9
-    class: outputs
-    function: Low Side Output
-    type: ls
-    ts_name: Tacho output
-
-  - pin: 12
-    id: B12
-    class: outputs
-    function: Low Side Output
-    type: ls
-    ts_name: Low side output 2
-
-  - pin: 13
-    id: B11
-    class: outputs
-    function: Low Side Output
-    type: ls
-    ts_name: Low side output 3
-
-  - pin: 14
-    id: B10
-    class: outputs
-    function: Low Side Output
-    type: ls
-    ts_name: Low side output 4
-
-  - pin: 15
     id: D10
     class: outputs
     function: Low Side Output
     type: ls
     ts_name: Fan output
 
-  - pin: 16
-    id: D12
+  - pin: 12
+    id: D9
     class: outputs
     function: Low Side Output
     type: ls
-    ts_name: Fuel pump output
+    ts_name: Tacho out
+
+  - pin: 13
+    id: D8
+    class: outputs
+    function: Low Side Output
+    type: ls
+    ts_name: Low side output 1
+
+  - pin: 14
+    id: B12
+    class: outputs
+    function: Low Side Output
+    type: ls
+    ts_name: Low side output 2
+
+  - pin: 15
+    function: ETB-
+    type: etb
+    color: white
+
+  - pin: 16
+    function: ETB+
+    type: etb
+    ts_name: white
 
   - pin: 17
     id: C3
@@ -308,76 +303,76 @@ info:
   pins:
     - pin: 1
       x: 195
-      y: 100
+      y: 102
     - pin: 2
       x: 225
-      y: 100
+      y: 102
     - pin: 3
       x: 252
-      y: 100
+      y: 102
     - pin: 4
       x: 278
-      y: 100
+      y: 102
     - pin: 5
       x: 308
-      y: 100
+      y: 102
     - pin: 6
       x: 335
-      y: 100
+      y: 102
     - pin: 7
       x: 361
-      y: 100
+      y: 102
     - pin: 8
       x: 390
-      y: 100
+      y: 102
     - pin: 9
-      x: 1217
-      y: 958
+      x: 195
+      y: 132
     - pin: 10
-      x: 1217
-      y: 787
+      x: 225
+      y: 132
     - pin: 11
-      x: 1217
-      y: 616
+      x: 252
+      y: 132
     - pin: 12
-      x: 1217
-      y: 445
+      x: 278
+      y: 132
     - pin: 13
-      x: 1114
-      y: 958
+      x: 308
+      y: 132
     - pin: 14
-      x: 1114
-      y: 787
+      x: 335
+      y: 132
     - pin: 15
-      x: 1114
-      y: 616
+      x: 361
+      y: 132
     - pin: 16
-      x: 1114
-      y: 445
+      x: 390
+      y: 132
     - pin: 17
-      x: 1011
-      y: 958
+      x: 195
+      y: 163
     - pin: 18
-      x: 1011
-      y: 787
+      x: 225
+      y: 163
     - pin: 19
-      x: 1011
-      y: 616
+      x: 252
+      y: 163
     - pin: 20
-      x: 1011
-      y: 445
+      x: 278
+      y: 163
     - pin: 21
-      x: 908
-      y: 958
+      x: 308
+      y: 163
     - pin: 22
-      x: 908
-      y: 787
+      x: 335
+      y: 163
     - pin: 23
-      x: 908
-      y: 616
+      x: 361
+      y: 163
     - pin: 24
-      x: 908
-      y: 445
+      x: 390
+      y: 163
     - pin: 25
       x: 805
       y: 958
