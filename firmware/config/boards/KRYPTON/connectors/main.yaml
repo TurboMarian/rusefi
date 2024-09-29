@@ -164,19 +164,16 @@ pins:
     ts_name: Injector 8
     
   - pin: 25
-    id: E8
-    class: outputs
-    function: High Side Output
-    type: ign
-    ts_name: Ignition 8
-    
-  # SENSORS
-  
-  - pin: 26
-    id: EFI_ADC_0
+    id: EFI_ADC_2
     class: analog_inputs
     function: Sensor Input
-    ts_name: Battery reference voltage
+    ts_name: Clt sensor
+
+  - pin: 26
+    id: EFI_ADC_3
+    class: analog_inputs
+    function: Sensor Input
+    ts_name: Iat sensor
 
   - pin: 27
     id: EFI_ADC_5
@@ -185,86 +182,69 @@ pins:
     ts_name: TPS sensor
 
   - pin: 28
-    id: EFI_ADC_2
-    class: analog_inputs
-    function: Sensor Input
-    ts_name: Clt sensor
-
-  - pin: 29
-    id: EFI_ADC_3
-    class: analog_inputs
-    function: Sensor Input
-    ts_name: Iat sensor
-
-  - pin: 30
-    id: EFI_ADC_10
-    class: analog_inputs
-    function: Sensor Input
-    ts_name: MAP sensor
-
-  - pin: 31
-    id: EFI_ADC_1
-    class: analog_inputs
-    function: Sensor Input
-    ts_name: Build-in wideband sensor
-
-  - pin: 32
     id: EFI_ADC_4
     class: analog_inputs
     function: Sensor Input
     ts_name: Spare analog input 1
 
-  - pin: 33
+  - pin: 29
     id: EFI_ADC_6
     class: analog_inputs
     function: Sensor Input
     ts_name: Spare analog input 2
 
-  - pin: 34
+  - pin: 30
     id: EFI_ADC_7
     class: analog_inputs
     function: Sensor Input
     ts_name: Spare analog input 3
 
-  - pin: 35
+  - pin: 31
     id: EFI_ADC_15
     class: analog_inputs
     function: Sensor Input
     ts_name: Spare analog input 4
-  
-  - pin: 36
-    id: EFI_ADC_14
-    class: analog_inputs
-    function: Sensor Input
-    ts_name: Spare analog input 5
 
-  - pin: 37
-    id: [E6, E6]
-    class: [event_inputs, switch_inputs]
-    function: Camshaft Sensor (VR+/Hall)
-    type: hall
-    ts_name: Camshaft Sensor
+  - pin: 32
+    function: GND
+    type: pgnd
 
-  - pin: 38
-    id: [E5, E5]
-    class: [event_inputs, switch_inputs]
-    function: Crankshaft Sensor (VR+/Hall)
-    type: hall
-    ts_name: Crankshaft Sensor
-
-  - pin: 39
-    id: [E4, E4]
-    class: [event_inputs, switch_inputs]
-    function: Spare trigger input (VR+/Hall)
-    type: hall
-    ts_name: Spare trigger input
-
-  - pin: 40
+  - pin: 33
     id: [B9, B9]
     class: [event_inputs, switch_inputs]
     function: Digital Input
     type: hall
     ts_name: Digital Input 1
+
+  - pin: 34
+    id: EFI_ADC_14
+    class: analog_inputs
+    function: Sensor Input
+    ts_name: Spare analog input 5
+
+  - pin: 35
+    function: LSU_nermest
+    type: lsu
+
+  - pin: 36
+    function: LSU_vgnd
+    type: lsu
+
+  - pin: 37
+    function: LSU_ia
+    type: lsu
+
+  - pin: 38
+    function: LSU_ip
+    type: lsu
+
+  - pin: 39
+    function: LSU_heater-
+    type: lsu
+
+  - pin: 40
+    function: 5V output
+    type: 5V
 
   - pin: 41
     id: [E0, E0]
@@ -274,13 +254,72 @@ pins:
     ts_name: Digital Input 2
 
   - pin: 42
+    function: CAN_L
+    type: CAN
+
+  - pin: 43
+    function: CAN_H
+    type: CAN
+
+  - pin: 44
+    id: [E6, E6]
+    class: [event_inputs, switch_inputs]
+    function: Camshaft Sensor (VR+/Hall)
+    type: vr hall
+    ts_name: Camshaft Sensor
+
+  - pin: 45
+    function: Camshaft VR- (do not connect if hall)
+    type: vr
+
+  - pin: 46
+    id: [E5, E5]
+    class: [event_inputs, switch_inputs]
+    function: Crankshaft Sensor (VR+/Hall)
+    type: hall
+    ts_name: Crankshaft Sensor
+
+  - pin: 47
+    function: Crankshaft VR- (do not connect if hall)
+    type: vr
+
+  - pin: 48
+    function: 12V supply from Key (turn on/off power) primary source of +12v
+    type: 12V
+
+  - pin: 49
+    id: [E4, E4]
+    class: [event_inputs, switch_inputs]
+    function: Spare trigger input (VR+/Hall)
+    type: hall
+    ts_name: Spare trigger input
+
+  - pin: 50
+    id: EFI_ADC_10
+    class: analog_inputs
+    function: Sensor Input
+    ts_name: MAP sensor
+
+  - pin: 51
+    id: EFI_ADC_0
+    class: analog_inputs
+    function: Sensor Input
+    ts_name: Battery reference voltage
+
+  - pin: 52
+    id: EFI_ADC_1
+    class: analog_inputs
+    function: Sensor Input
+    ts_name: Build-in wideband sensor
+
+  - pin: 53
     id: [E2, E2]
     class: [event_inputs, switch_inputs]
     function: Digital Input
     type: hall
     ts_name: Digital Input 3
 
-  - pin: 43
+  - pin: 54
     id: [E3, E3]
     class: [event_inputs, switch_inputs]
     function: Digital Input
@@ -394,53 +433,53 @@ info:
       x: 784
       y: 102
     - pin: 33
-      x: 599
-      y: 958
+      x: 589
+      y: 135
     - pin: 34
-      x: 599
-      y: 787
+      x: 618
+      y: 135
     - pin: 35
-      x: 599
-      y: 616
+      x: 645
+      y: 135
     - pin: 36
-      x: 599
-      y: 445
+      x: 672
+      y: 135
     - pin: 37
-      x: 496
-      y: 958
+      x: 702
+      y: 135
     - pin: 38
-      x: 496
-      y: 787
+      x: 728
+      y: 135
     - pin: 39
-      x: 496
-      y: 616
+      x: 755
+      y: 135
     - pin: 40
-      x: 496
-      y: 445
+      x: 784
+      y: 135
     - pin: 41
-      x: 393
-      y: 958
+      x: 589
+      y: 163
     - pin: 42
-      x: 393
-      y: 787
+      x: 618
+      y: 163
     - pin: 43
-      x: 393
-      y: 616
+      x: 645
+      y: 163
     - pin: 44
-      x: 393
-      y: 445
+      x: 672
+      y: 163
     - pin: 45
-      x: 290
-      y: 958
+      x: 702
+      y: 163
     - pin: 46
-      x: 290
-      y: 787
+      x: 728
+      y: 163
     - pin: 47
-      x: 290
-      y: 616
+      x: 755
+      y: 163
     - pin: 48
-      x: 290
-      y: 445
+      x: 784
+      y: 163
 
 
 
