@@ -110,62 +110,60 @@ pins:
     ts_name: white
 
   - pin: 17
-    id: C3
+    id: D2
     class: outputs
     function: Low Side Output
-    type: ls
-    ts_name: WBO_HEATER
+    type: inj
+    ts_name: Injector 1
     
-  # High side
-  
   - pin: 18
-    id: E15
+    id: C12
     class: outputs
-    function: High Side Output
-    type: ign
-    ts_name: Ignition 1
-    
+    function: Low Side Output
+    type: inj
+    ts_name: Injector 2
+
   - pin: 19
-    id: E14
+    id: C8
     class: outputs
-    function: High Side Output
-    type: ign
-    ts_name: Ignition 2
+    function: Low Side Output
+    type: inj
+    ts_name: Injector 3
     
   - pin: 20
-    id: E13
+    id: C7
     class: outputs
-    function: High Side Output
-    type: ign
-    ts_name: Ignition 3
+    function: Low Side Output
+    type: inj
+    ts_name: Injector 4
     
   - pin: 21
-    id: E12
+    id: C6
     class: outputs
-    function: High Side Output
-    type: ign
-    ts_name: Ignition 4
+    function: Low Side Output
+    type: inj
+    ts_name: Injector 5
     
   - pin: 22
-    id: E11
+    id: D15
     class: outputs
-    function: High Side Output
-    type: ign
-    ts_name: Ignition 5
+    function: Low Side Output
+    type: inj
+    ts_name: Injector 6
     
   - pin: 23
-    id: E10
+    id: D14
     class: outputs
-    function: High Side Output
-    type: ign
-    ts_name: Ignition 6
+    function: Low Side Output
+    type: inj
+    ts_name: Injector 7
     
   - pin: 24
-    id: E9
+    id: D13
     class: outputs
-    function: High Side Output
-    type: ign
-    ts_name: Ignition 7
+    function: Low Side Output
+    type: inj
+    ts_name: Injector 8
     
   - pin: 25
     id: E8
