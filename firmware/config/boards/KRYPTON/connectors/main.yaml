@@ -167,47 +167,54 @@ pins:
     id: EFI_ADC_2
     class: analog_inputs
     function: Sensor Input
+    type: as
     ts_name: Clt sensor
 
   - pin: 26
     id: EFI_ADC_3
     class: analog_inputs
     function: Sensor Input
+    type: as
     ts_name: Iat sensor
 
   - pin: 27
     id: EFI_ADC_5
     class: analog_inputs
     function: Sensor Input
+    type: as
     ts_name: TPS sensor
 
   - pin: 28
     id: EFI_ADC_4
     class: analog_inputs
     function: Sensor Input
+    type: as
     ts_name: Spare analog input 1
 
   - pin: 29
     id: EFI_ADC_6
     class: analog_inputs
     function: Sensor Input
+    type: as
     ts_name: Spare analog input 2
 
   - pin: 30
     id: EFI_ADC_7
     class: analog_inputs
     function: Sensor Input
+    type: as
     ts_name: Spare analog input 3
 
   - pin: 31
     id: EFI_ADC_15
     class: analog_inputs
     function: Sensor Input
+    type: as
     ts_name: Spare analog input 4
 
   - pin: 32
     function: GND
-    type: pgnd
+    type: gnd
 
   - pin: 33
     id: [B9, B9]
@@ -220,6 +227,7 @@ pins:
     id: EFI_ADC_14
     class: analog_inputs
     function: Sensor Input
+    type: as
     ts_name: Spare analog input 5
 
   - pin: 35
@@ -255,11 +263,11 @@ pins:
 
   - pin: 42
     function: CAN_L
-    type: CAN
+    type: CANL
 
   - pin: 43
     function: CAN_H
-    type: CAN
+    type: CANH
 
   - pin: 44
     id: [E6, E6]
@@ -298,18 +306,21 @@ pins:
     id: EFI_ADC_10
     class: analog_inputs
     function: Sensor Input
+    type: as
     ts_name: MAP sensor
 
   - pin: 51
     id: EFI_ADC_0
     class: analog_inputs
     function: Sensor Input
+    type: as
     ts_name: Battery reference voltage
 
   - pin: 52
     id: EFI_ADC_1
     class: analog_inputs
     function: Sensor Input
+    type: as
     ts_name: Build-in wideband sensor
 
   - pin: 53
