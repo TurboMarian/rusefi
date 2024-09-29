@@ -102,12 +102,10 @@ pins:
   - pin: 15
     function: ETB-
     type: etb
-    color: white
 
   - pin: 16
     function: ETB+
     type: etb
-    ts_name: white
 
   - pin: 17
     id: D2
@@ -372,29 +370,29 @@ info:
       x: 390
       y: 163
     - pin: 25
-      x: 805
-      y: 958
+      x: 589
+      y: 102
     - pin: 26
-      x: 805
-      y: 787
+      x: 618
+      y: 102
     - pin: 27
-      x: 805
-      y: 616
+      x: 645
+      y: 102
     - pin: 28
-      x: 805
-      y: 445
+      x: 672
+      y: 102
     - pin: 29
       x: 702
-      y: 958
+      y: 102
     - pin: 30
-      x: 702
-      y: 787
+      x: 728
+      y: 102
     - pin: 31
-      x: 702
-      y: 616
+      x: 755
+      y: 102
     - pin: 32
-      x: 702
-      y: 445
+      x: 784
+      y: 102
     - pin: 33
       x: 599
       y: 958
