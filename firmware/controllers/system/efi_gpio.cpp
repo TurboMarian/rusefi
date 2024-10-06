@@ -32,31 +32,31 @@ static const char* const trailNames[] = { "Trail 1", "Trail 2", "Trail 3", "Trai
 static const char* const trailShortNames[] = { "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "rA", "rB", "rD" };
 
 const char *vvtNames[] = {
-		PROTOCOL_VVT1_NAME,
-		PROTOCOL_VVT2_NAME,
-		PROTOCOL_VVT3_NAME,
-		PROTOCOL_VVT4_NAME};
+		"VVT1",
+		"VVT2",
+		"VVT3",
+		"VVT4"};
 
 const char *laNames[] = {
-		PROTOCOL_WA_CHANNEL_1,
-		PROTOCOL_WA_CHANNEL_2,
-		PROTOCOL_WA_CHANNEL_3,
-		PROTOCOL_WA_CHANNEL_4};
+		"input1",
+		"input2",
+		"input3",
+		"input4"};
 
 // these short names are part of engine sniffer protocol
-static const char* const sparkShortNames[] = { PROTOCOL_COIL1_SHORT_NAME, "c2", "c3", "c4", "c5", "c6", "c7", "c8",
+static const char* const sparkShortNames[] = { PROTOCOL_COIL_SHORT_PREFIX "1", PROTOCOL_COIL_SHORT_PREFIX "2", "c3", "c4", "c5", "c6", "c7", "c8",
 		"c9", "cA", "cB", "cD"};
 
 static const char* const injectorNames[] = { "Injector 1", "Injector 2", "Injector 3", "Injector 4", "Injector 5", "Injector 6",
 		"Injector 7", "Injector 8", "Injector 9", "Injector 10", "Injector 11", "Injector 12"};
 
-static const char* const injectorShortNames[] = { PROTOCOL_INJ1_SHORT_NAME, "i2", "i3", "i4", "i5", "i6", "i7", "i8",
+static const char* const injectorShortNames[] = { PROTOCOL_INJ_SHORT_PREFIX "1", PROTOCOL_INJ_SHORT_PREFIX "2", "i3", "i4", "i5", "i6", "i7", "i8",
 		"i9", "iA", "iB", "iC"};
 
 static const char* const injectorStage2Names[] = { "Injector Second Stage 1", "Injector Second Stage 2", "Injector Second Stage 3", "Injector Second Stage 4", "Injector Second Stage 5", "Injector Second Stage 6",
 		"Injector Second Stage 7", "Injector Second Stage 8", "Injector Second Stage 9", "Injector Second Stage 10", "Injector Second Stage 11", "Injector Second Stage 12"};
 
-static const char* const injectorStage2ShortNames[] = { PROTOCOL_INJ1_STAGE2_SHORT_NAME, "j2", "j3", "j4", "j5", "j6", "j7", "j8",
+static const char* const injectorStage2ShortNames[] = { PROTOCOL_INJ_STAGE2_SHORT_PREFIX "1", PROTOCOL_INJ_STAGE2_SHORT_PREFIX "2", "j3", "j4", "j5", "j6", "j7", "j8",
 		"j9", "jA", "jB", "jC"};
 
 static const char* const auxValveShortNames[] = { "a1", "a2"};
@@ -165,9 +165,9 @@ EnginePins::EnginePins() :
 		triggerDecoderErrorPin("led: trigger debug", CONFIG_PIN_OFFSETS(triggerError)),
 		speedoOut("speedoOut", CONFIG_OFFSET(speedometerOutputPin))
 {
-	hpfpValve.setName(PROTOCOL_HPFP_NAME);
+	hpfpValve.setName("hpfp");
 #if EFI_HD_ACR
-	harleyAcr.setName(PROTOCOL_ACR_NAME);
+	harleyAcr.setName("acr");
 #endif // EFI_HD_ACR
 
 	static_assert(efi::size(sparkNames) >= MAX_CYLINDER_COUNT, "Too many ignition pins");
@@ -586,9 +586,8 @@ void OutputPin::resetToggleStats() {
 #endif // EFI_SIMULATOR
 
 void OutputPin::setValue(const char *msg, int logicValue, bool isForce) {
-extern bool qcDirectPinControlMode;
     UNUSED(msg);
-    if ((qcDirectPinControlMode || getOutputOnTheBenchTest() == this) && !isForce) {
+    if ((isHwQcMode() || getOutputOnTheBenchTest() == this) && !isForce) {
         return;
     }
 

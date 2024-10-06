@@ -103,11 +103,14 @@ void boardOnConfigurationChange(engine_configuration_s * /*previousConfiguration
 void setBoardConfigOverrides() {
 	setHellenVbatt();
 
-	setHellenSdCardSpi1();
+	setHellenSdCardSpi1Hardware();
+	engineConfiguration->isSdCardEnabled = true;
 
     setDefaultHellenAtPullUps();
 
 	setHellenCan();
+	engineConfiguration->can2RxPin = Gpio::B12;
+	engineConfiguration->can2TxPin = Gpio::B13;
 }
 
 /**

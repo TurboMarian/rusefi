@@ -13,6 +13,9 @@ void printSpiState();
 void printConfiguration();
 void scheduleStopEngine();
 
+bool isHwQcMode();
+void setHwQcMode();
+
 void setEngineTypeAndSave(int value);
 void setEngineType(int value, bool isWriteToFlash = true);
 void readPin(const char *pinName);

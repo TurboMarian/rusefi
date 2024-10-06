@@ -9,6 +9,10 @@
 #include "settings.h"
 #include "gpio/gpio_ext.h"
 
+#ifdef HW_HELLEN
+#include "hellen_meta.h"
+#endif // HW_HELLEN
+
 extern PinRepository pinRepository;
 
 // todo: WHAT?! document why do we manually truncate higher bits?
@@ -16,12 +20,33 @@ extern PinRepository pinRepository;
 // raw values are 0..5V, convert it to 8-bit (0..255)
 #define RAW_TO_BYTE(v) TRUNCATE_TO_BYTE((int)(v * 255.0 / 5.0))
 
+#if EFI_PROD_CODE
 /**
  * QC direct output control API is used by https://github.com/rusefi/stim test device
  * quite different from bench testing user functionality: QC direct should never be engaged on a real vehicle
  * Once QC direct control mode is activated the only way out is to reboot the unit!
  */
-bool qcDirectPinControlMode = false;
+static bool qcDirectPinControlMode = false;
+#endif
+
+/*board public API*/bool isHwQcMode() {
+#if EFI_PROD_CODE
+  return qcDirectPinControlMode;
+#else
+  return false;
+#endif // EFI_PROD_CODE
+}
+
+void setHwQcMode() {
+#if EFI_PROD_CODE
+  qcDirectPinControlMode = true;
+#if HW_HELLEN
+        if (!getHellenBoardEnabled()) {
+            hellenEnableEn("HW QC");
+        }
+#endif // HW_HELLEN
+#endif // EFI_PROD_CODE
+}
 
 #if EFI_CAN_SUPPORT
 
@@ -43,7 +68,7 @@ static void directWritePad(Gpio pin, int value) {
 }
 
 static void qcSetEtbState(uint8_t dcIndex, uint8_t direction) {
-	qcDirectPinControlMode = true;
+	setHwQcMode();
 	const dc_io *io = &engineConfiguration->etbIo[dcIndex];
 	Gpio controlPin = io->controlPin;
   directWritePad(controlPin, 1);
@@ -244,8 +269,6 @@ static void resetPinStats(bench_mode_e benchModePinIdx) {
 #endif // EFI_SIMULATOR
 }
 
-/*board public API*/bool withHwQcActivity = false;
-
 void processCanQcBenchTest(const CANRxFrame& frame) {
 	if (CAN_EID(frame) != (int)bench_test_packet_ids_e::IO_CONTROL) {
 		return;
@@ -253,16 +276,14 @@ void processCanQcBenchTest(const CANRxFrame& frame) {
 	if (frame.data8[0] != (int)bench_test_magic_numbers_e::BENCH_HEADER) {
 		return;
 	}
-  withHwQcActivity = true;
+  setHwQcMode();
 	bench_test_io_control_e command = (bench_test_io_control_e)frame.data8[1];
 	if (command == bench_test_io_control_e::CAN_BENCH_GET_COUNT) {
 	    sendOutBoardMeta();
 	} else if (command == bench_test_io_control_e::CAN_QC_OUTPUT_CONTROL_SET) {
 	  // see also "bench_setpin" console command
-		qcDirectPinControlMode = true;
 	    setPin(frame, 1);
 	} else if (command == bench_test_io_control_e::CAN_QC_OUTPUT_CONTROL_CLEAR) {
-		qcDirectPinControlMode = true;
 	    setPin(frame, 0);
 	} else if (command == bench_test_io_control_e::CAN_QC_ETB) {
 		uint8_t dcIndex = frame.data8[2];

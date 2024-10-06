@@ -54,6 +54,8 @@
 /* Local variables and types.												*/
 /*==========================================================================*/
 
+#define PROTOCOL_HIP_NAME "HIP"
+
 static NamedOutputPin intHold(PROTOCOL_HIP_NAME);
 static NamedOutputPin Cs(PROTOCOL_HIP_NAME);
 
@@ -510,7 +512,7 @@ static msg_t hipThread(void *arg) {
 				#if EFI_HIP_9011_DEBUG
 					/* debug */
 					normalizedValue[idx] = knockNormalized;
-					normalizedValueMax[idx] = maxF(knockNormalized, normalizedValueMax[idx]);
+					normalizedValueMax[idx] = std::max(knockNormalized, normalizedValueMax[idx]);
 					/* counters */
 					instance.samples++;
 				#endif

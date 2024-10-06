@@ -136,6 +136,7 @@
 #define BOARD_PC_VARIABLES_FROM_FILE 
 #define BOARD_POPULAR_VEHICLES_FILE 
 #define BOARD_TABLES_FROM_FILE 
+#define BOARD_VE_FROM_FILE 
 #define BOARD_VE_MENU_FROM_FILE 
 #define BOOST_BLEND_COUNT 2
 #define BOOST_CURVE_SIZE 5
@@ -1237,34 +1238,22 @@
 #define pin_output_mode_e_OM_OPENDRAIN 2
 #define pin_output_mode_e_OM_OPENDRAIN_INVERTED 3
 #define PRIME_CURVE_COUNT 8
-#define PROTOCOL_ACR_NAME "acr"
 #define PROTOCOL_ANALOG_CHART "analog_chart"
-#define PROTOCOL_COIL1_SHORT_NAME "c1"
+#define PROTOCOL_COIL_SHORT_PREFIX "c"
 #define PROTOCOL_CRANK1 "t1"
 #define PROTOCOL_CRANK2 "t2"
 #define PROTOCOL_ENGINE_SNIFFER "wave_chart"
 #define PROTOCOL_ES_DOWN "d"
 #define PROTOCOL_ES_UP "u"
 #define PROTOCOL_HELLO_PREFIX "***"
-#define PROTOCOL_HIP_NAME "HIP"
-#define PROTOCOL_HPFP_NAME "hpfp"
-#define PROTOCOL_INJ1_SHORT_NAME "i1"
-#define PROTOCOL_INJ1_STAGE2_SHORT_NAME "j1"
+#define PROTOCOL_INJ_SHORT_PREFIX "i"
+#define PROTOCOL_INJ_STAGE2_SHORT_PREFIX "j"
 #define PROTOCOL_KNOCK_SPECTROGRAMM "knock_spectrogram"
 #define PROTOCOL_MSG "msg"
 #define PROTOCOL_OUTPIN "outpin"
 #define PROTOCOL_SIGNATURE_PREFIX "rusEFI "
-#define PROTOCOL_TACH_NAME "tach"
 #define PROTOCOL_TEST_RESPONSE_TAG "ts_p_alive"
 #define PROTOCOL_VERSION_TAG "rusEfiVersion"
-#define PROTOCOL_VVT1_NAME "VVT1"
-#define PROTOCOL_VVT2_NAME "VVT2"
-#define PROTOCOL_VVT3_NAME "VVT3"
-#define PROTOCOL_VVT4_NAME "VVT4"
-#define PROTOCOL_WA_CHANNEL_1 "input1"
-#define PROTOCOL_WA_CHANNEL_2 "input2"
-#define PROTOCOL_WA_CHANNEL_3 "input3"
-#define PROTOCOL_WA_CHANNEL_4 "input4"
 #define RANGE_INPUT_COUNT 6
 #define REBOOT_COMMAND 0xbb
 #define SCRIPT_CURVE_16 16
@@ -1305,7 +1294,7 @@
 #define show_Proteus_presets false
 #define show_test_presets true
 #define show_vvt_output_pin true
-#define SIGNATURE_HASH 2487139994
+#define SIGNATURE_HASH 4010597116
 #define SIMULATOR_TUNE_BIN_FILE_NAME "generated/simulator_tune_image.bin"
 #define SIMULATOR_TUNE_BIN_FILE_NAME_PREFIX "generated/simulator_tune_image"
 #define SIMULATOR_TUNE_BIN_FILE_NAME_SUFFIX ".bin"
@@ -1363,6 +1352,10 @@
 #define TOOTH_PACKET_SIZE 2
 #define TOP_DEAD_CENTER_MESSAGE "r"
 #define TORQUE_CURVE_SIZE 6
+#define torqueReductionActivationMode_e_auto_enum 0="TORQUE_REDUCTION_BUTTON",1="LAUNCH_BUTTON"
+#define torqueReductionActivationMode_e_enum "Torque Reduction Button", "Launch Button"
+#define torqueReductionActivationMode_e_LAUNCH_BUTTON 1
+#define torqueReductionActivationMode_e_TORQUE_REDUCTION_BUTTON 0
 #define TOTAL_CONFIG_SIZE 22972
 #define TPS_2_BYTE_PACKING_MULT 100
 #define TPS_PPS_TOO_HIGH_THRESHOLD 110
@@ -1611,11 +1604,14 @@
 #define ts_show_air_conditioning true
 #define ts_show_alternator true
 #define ts_show_analog_divider true
+#define ts_show_analog_ego true
+#define ts_show_analog_input_settings true
 #define ts_show_aux_connections true
 #define ts_show_aux_sensors true
 #define ts_show_auxserial_pins true
 #define ts_show_bank2_cam1 true
 #define ts_show_bank2_cam2 true
+#define ts_show_brake_pedal_pin true
 #define ts_show_cam2 true
 #define ts_show_can2 true
 #define ts_show_can_bitrate true
@@ -1655,6 +1651,7 @@
 #define ts_show_experimental true
 #define ts_show_fan2_settings true
 #define ts_show_firing_order true
+#define ts_show_flex_inverted true
 #define ts_show_forced_induction true
 #define ts_show_ford_toyota_tps_pps true
 #define ts_show_fuel_level_sensor true
@@ -1692,6 +1689,8 @@
 #define ts_show_injection_mode true
 #define ts_show_injection_phase true
 #define ts_show_injectionPinMode false
+#define ts_show_intake_cam_edge true
+#define ts_show_intake_vvt_direction true
 #define ts_show_k_line true
 #define ts_show_l9779 false
 #define ts_show_maf true
@@ -1731,9 +1730,11 @@
 #define ts_show_starter_disable true
 #define ts_show_startup_map_baro_grab true
 #define ts_show_status_leds true
+#define ts_show_strokes true
 #define ts_show_sync_cam true
 #define ts_show_tachometer true
 #define ts_show_tcu false
+#define ts_show_throttle_switch true
 #define ts_show_tle8888 false
 #define ts_show_top_level_can_menu true
 #define ts_show_tps2 true
@@ -1742,8 +1743,8 @@
 #define ts_show_trigger_advanced true
 #define ts_show_trigger_comparator false
 #define ts_show_trigger_overrides true
+#define ts_show_trigger_pins true
 #define ts_show_tunerstudio_port true
-#define ts_show_uegoSerial true
 #define ts_show_vbatt true
 #define ts_show_vehicle_speed_sensor true
 #define ts_show_vehicle_weight false
@@ -1755,14 +1756,14 @@
 #define ts_show_wastegate_sensor true
 #define ts_show_wbo_canbus_index true
 #define ts_show_wbo_canbus_set_index true
-#define TS_SIGNATURE "rusEFI master.2024.09.18.f407-discovery.2487139994"
+#define TS_SIGNATURE "rusEFI master.2024.10.05.f407-discovery.4010597116"
 #define TS_SIMULATE_CAN '>'
 #define TS_SIMULATE_CAN_char >
 #define TS_SINGLE_WRITE_COMMAND 'W'
 #define TS_SINGLE_WRITE_COMMAND_char W
 #define TS_TEST_COMMAND 't'
 #define TS_TEST_COMMAND_char t
-#define TS_TOTAL_OUTPUT_SIZE 1748
+#define TS_TOTAL_OUTPUT_SIZE 1752
 #define TS_TRIGGER_SCOPE_CHANNEL_1_NAME "Channel 1"
 #define TS_TRIGGER_SCOPE_CHANNEL_2_NAME "Channel 2"
 #define TS_TRIGGER_SCOPE_DISABLE 5
@@ -1802,6 +1803,7 @@
 #define ve_override_e_VE_MAP 1
 #define ve_override_e_VE_None 0
 #define ve_override_e_VE_TPS 2
+#define VE_TABLE_NAME "VE Table"
 #define VEHICLE_INFO_SIZE 32
 #define VIN_NUMBER_SIZE 17
 #define VOLTAGE_1_BYTE_PACKING_DIV 0.02

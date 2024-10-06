@@ -672,9 +672,10 @@ struct engine_configuration_s {
 	 */
 	Gpio canRxPin;
 	/**
+	 * Pin that activates the reduction/cut for shifting. Sometimes shared with the Launch Control pin
 	 * offset 36
 	 */
-	uint16_t unusedEtbExpAverageLength;
+	switch_input_pin_e torqueReductionTriggerPin;
 	/**
 	 * units: %
 	 * offset 38
@@ -963,9 +964,11 @@ struct engine_configuration_s {
 	 */
 	uint8_t mapSyncThreshold;
 	/**
+	 * How many % of ignition events will be cut
+	 * units: %
 	 * offset 443
 	 */
-	uint8_t unusedByteHere;
+	int8_t torqueReductionIgnitionCut;
 	/**
 	 * @@CYLINDER_BORE_TOOLTIP@@
 	 * units: mm
@@ -1774,9 +1777,11 @@ struct engine_configuration_s {
 	 */
 	brain_input_pin_e flexSensorPin;
 	/**
+	 * Since torque reduction pin is usually shared with launch control, most people have an RPM where behavior under that is Launch Control, over that is Flat Shift/Torque Reduction
+	 * units: rpm
 	 * offset 818
 	 */
-	uint16_t unused720;
+	uint16_t torqueReductionArmingRpm;
 	/**
 	 * offset 820
 	 */
@@ -2013,7 +2018,7 @@ struct engine_configuration_s {
 	bool enableCanVss : 1 {};
 	/**
 	offset 920 bit 8 */
-	bool enableInnovateLC2 : 1 {};
+	bool unusedSnableInnovateLC2 : 1 {};
 	/**
 	offset 920 bit 9 */
 	bool showHumanReadableWarning : 1 {};
@@ -2369,10 +2374,10 @@ struct engine_configuration_s {
 	bool launchSparkCutEnable : 1 {};
 	/**
 	offset 1304 bit 20 */
-	bool unusedFancy1 : 1 {};
+	bool torqueReductionEnabled : 1 {};
 	/**
 	offset 1304 bit 21 */
-	bool unusedFancy2 : 1 {};
+	bool torqueReductionTriggerPinInverted : 1 {};
 	/**
 	offset 1304 bit 22 */
 	bool unusedFancy14 : 1 {};
@@ -2534,7 +2539,8 @@ struct engine_configuration_s {
 	offset 1316 bit 23 */
 	bool useCltBasedRpmLimit : 1 {};
 	/**
-	 * If enabled, don't wait for engine start to heat O2 sensors. WARNING: this will reduce the life of your sensor, as condensation in the exhaust from a cold start can crack the sensing element.
+	 * If enabled, don't wait for engine start to heat O2 sensors.
+	 * WARNING: this will reduce the life of your sensor, as condensation in the exhaust from a cold start can crack the sensing element.
 	offset 1316 bit 24 */
 	bool forceO2Heating : 1 {};
 	/**
@@ -2608,9 +2614,10 @@ struct engine_configuration_s {
 	 */
 	int idleStepperTotalSteps;
 	/**
+	 * Pedal position to realize that we need to reduce torque when the trigger pin is uuuh triggered
 	 * offset 1356
 	 */
-	int unusedInt3423423;
+	int torqueReductionArmingApp;
 	/**
 	 * Duration in ms or duty cycle depending on selected mode
 	 * offset 1360
@@ -2768,9 +2775,11 @@ struct engine_configuration_s {
 	 */
 	int16_t idlePidRpmDeadZone;
 	/**
+	 * For how long after the pin has been triggered will the cut/reduction stay active. After that, even if the pin is still triggered, torque is re-introduced
+	 * units: ms
 	 * offset 1488
 	 */
-	float unusedTargetVBatt;
+	float torqueReductionTime;
 	/**
 	 * See Over/Undervoltage Shutdown/Retry bit in documentation
 	offset 1492 bit 0 */
@@ -2885,15 +2894,13 @@ struct engine_configuration_s {
 	 */
 	int16_t iacByTpsTaper;
 	/**
-	 * Auxiliary sensor serial, not to be confused with secondary calibration serial
 	 * offset 1500
 	 */
-	Gpio auxSerialTxPin;
+	Gpio unusedAuxSeria;
 	/**
-	 * Auxiliary sensor serial, not to be confused with secondary calibration serial
 	 * offset 1502
 	 */
-	Gpio auxSerialRxPin;
+	Gpio unusedAuxSerialRx;
 	/**
 	 * offset 1504
 	 */
@@ -2959,10 +2966,11 @@ struct engine_configuration_s {
 	 */
 	float tpsDecelEnleanmentMultiplier;
 	/**
-	 * units: BPs
+	 * How many degrees of timing advance will be reduced during the Torque Reduction Time
+	 * units: deg
 	 * offset 1532
 	 */
-	uint32_t auxSerialSpeed;
+	float torqueReductionIgnitionRetard;
 	/**
 	 * units: voltage
 	 * offset 1536
@@ -3645,7 +3653,11 @@ struct engine_configuration_s {
 	/**
 	 * offset 2384
 	 */
-	int16_t unusedEtbRocExpAverageLength;
+	pin_input_mode_e torqueReductionTriggerPinMode;
+	/**
+	 * offset 2385
+	 */
+	torqueReductionActivationMode_e torqueReductionActivationMode;
 	/**
 	 * A delay in cycles between fuel-enrich. portions
 	 * units: cycles
@@ -4586,97 +4598,97 @@ struct engine_configuration_s {
 	bool boardUseTempPullUp : 1 {};
 	/**
 	offset 3896 bit 1 */
-	bool unusedBit_875_1 : 1 {};
+	bool unusedBit_876_1 : 1 {};
 	/**
 	offset 3896 bit 2 */
-	bool unusedBit_875_2 : 1 {};
+	bool unusedBit_876_2 : 1 {};
 	/**
 	offset 3896 bit 3 */
-	bool unusedBit_875_3 : 1 {};
+	bool unusedBit_876_3 : 1 {};
 	/**
 	offset 3896 bit 4 */
-	bool unusedBit_875_4 : 1 {};
+	bool unusedBit_876_4 : 1 {};
 	/**
 	offset 3896 bit 5 */
-	bool unusedBit_875_5 : 1 {};
+	bool unusedBit_876_5 : 1 {};
 	/**
 	offset 3896 bit 6 */
-	bool unusedBit_875_6 : 1 {};
+	bool unusedBit_876_6 : 1 {};
 	/**
 	offset 3896 bit 7 */
-	bool unusedBit_875_7 : 1 {};
+	bool unusedBit_876_7 : 1 {};
 	/**
 	offset 3896 bit 8 */
-	bool unusedBit_875_8 : 1 {};
+	bool unusedBit_876_8 : 1 {};
 	/**
 	offset 3896 bit 9 */
-	bool unusedBit_875_9 : 1 {};
+	bool unusedBit_876_9 : 1 {};
 	/**
 	offset 3896 bit 10 */
-	bool unusedBit_875_10 : 1 {};
+	bool unusedBit_876_10 : 1 {};
 	/**
 	offset 3896 bit 11 */
-	bool unusedBit_875_11 : 1 {};
+	bool unusedBit_876_11 : 1 {};
 	/**
 	offset 3896 bit 12 */
-	bool unusedBit_875_12 : 1 {};
+	bool unusedBit_876_12 : 1 {};
 	/**
 	offset 3896 bit 13 */
-	bool unusedBit_875_13 : 1 {};
+	bool unusedBit_876_13 : 1 {};
 	/**
 	offset 3896 bit 14 */
-	bool unusedBit_875_14 : 1 {};
+	bool unusedBit_876_14 : 1 {};
 	/**
 	offset 3896 bit 15 */
-	bool unusedBit_875_15 : 1 {};
+	bool unusedBit_876_15 : 1 {};
 	/**
 	offset 3896 bit 16 */
-	bool unusedBit_875_16 : 1 {};
+	bool unusedBit_876_16 : 1 {};
 	/**
 	offset 3896 bit 17 */
-	bool unusedBit_875_17 : 1 {};
+	bool unusedBit_876_17 : 1 {};
 	/**
 	offset 3896 bit 18 */
-	bool unusedBit_875_18 : 1 {};
+	bool unusedBit_876_18 : 1 {};
 	/**
 	offset 3896 bit 19 */
-	bool unusedBit_875_19 : 1 {};
+	bool unusedBit_876_19 : 1 {};
 	/**
 	offset 3896 bit 20 */
-	bool unusedBit_875_20 : 1 {};
+	bool unusedBit_876_20 : 1 {};
 	/**
 	offset 3896 bit 21 */
-	bool unusedBit_875_21 : 1 {};
+	bool unusedBit_876_21 : 1 {};
 	/**
 	offset 3896 bit 22 */
-	bool unusedBit_875_22 : 1 {};
+	bool unusedBit_876_22 : 1 {};
 	/**
 	offset 3896 bit 23 */
-	bool unusedBit_875_23 : 1 {};
+	bool unusedBit_876_23 : 1 {};
 	/**
 	offset 3896 bit 24 */
-	bool unusedBit_875_24 : 1 {};
+	bool unusedBit_876_24 : 1 {};
 	/**
 	offset 3896 bit 25 */
-	bool unusedBit_875_25 : 1 {};
+	bool unusedBit_876_25 : 1 {};
 	/**
 	offset 3896 bit 26 */
-	bool unusedBit_875_26 : 1 {};
+	bool unusedBit_876_26 : 1 {};
 	/**
 	offset 3896 bit 27 */
-	bool unusedBit_875_27 : 1 {};
+	bool unusedBit_876_27 : 1 {};
 	/**
 	offset 3896 bit 28 */
-	bool unusedBit_875_28 : 1 {};
+	bool unusedBit_876_28 : 1 {};
 	/**
 	offset 3896 bit 29 */
-	bool unusedBit_875_29 : 1 {};
+	bool unusedBit_876_29 : 1 {};
 	/**
 	offset 3896 bit 30 */
-	bool unusedBit_875_30 : 1 {};
+	bool unusedBit_876_30 : 1 {};
 	/**
 	offset 3896 bit 31 */
-	bool unusedBit_875_31 : 1 {};
+	bool unusedBit_876_31 : 1 {};
 	/**
 	 * units: units
 	 * offset 3900

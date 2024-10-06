@@ -5,8 +5,9 @@ import com.opensr5.ConfigurationImage;
 import com.opensr5.io.ConfigurationImageFile;
 import com.rusefi.SerialPortScanner;
 import com.rusefi.core.preferences.storage.PersistentConfiguration;
-import com.rusefi.maintenance.CalibrationsUpdater;
-import com.rusefi.maintenance.ProgramSelector;
+import com.rusefi.maintenance.jobs.AsyncJobExecutor;
+import com.rusefi.maintenance.jobs.JobWithSuspendedSerialPortScanner;
+import com.rusefi.maintenance.jobs.UpdateCalibrationsJob;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -31,11 +32,8 @@ public class UpdateCalibrations {
                 final ConfigurationImage calibrationsImage = ConfigurationImageFile.readFromFile(
                     selectedFile.getAbsolutePath()
                 );
-                CalibrationsUpdater.INSTANCE.setCalibrationsToUpload(calibrationsImage);
-                ProgramSelector.executeJob(
-                    parent,
-                    ProgramSelector.UPDATE_CALIBRATIONS,
-                    port
+                AsyncJobExecutor.INSTANCE.executeJob(
+                    new JobWithSuspendedSerialPortScanner(new UpdateCalibrationsJob(port, calibrationsImage))
                 );
             } catch (final IOException e) {
                 final String errorMsg = String.format(

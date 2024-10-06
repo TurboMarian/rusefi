@@ -2,7 +2,7 @@
 static const LogField fields[] = {
 {packedTime, GAUGE_NAME_TIME, "sec", 0},
 	{engine->outputChannels.RPMValue, "RPM", "RPM", 0},
-	{engine->outputChannels.rpmAcceleration, "dRPM", "RPM acceleration", 2},
+	{engine->outputChannels.rpmAcceleration, "dRPM", "RPM acceleration/Rate of Change/ROC", 2},
 	{engine->outputChannels.speedToRpmRatio, "Gearbox Ratio", "value", 2},
 	{engine->outputChannels.internalMcuTemperature, "CPU Temperature", "deg C", 0},
 	{engine->outputChannels.coolant, "CLT", "deg C", 1},
@@ -445,8 +445,7 @@ static const LogField fields[] = {
 #if EFI_BOOST_CONTROL
 	{___engine.module<BoostController>()->boostControlTarget, "Boost: Target", "kPa", 1, "Boost Control"},
 #endif
-	{___engine.module<FanControl1>()->tempAlive, "tempAlive", "", 0},
-	{___engine.module<FanControl1>()->tempCode, "tempCode", "", 0},
+	{___engine.module<FanControl1>()->radiatorFanStatus, "radiatorFanStatus", "", 0},
 	{engine->engineState.lua.fuelAdd, "Lua: Fuel add", "g", 3},
 	{engine->engineState.lua.fuelMult, "Lua: Fuel mult", "", 0},
 	{engine->engineState.sd.tCharge, "Air: Charge temperature estimate", "deg C", 1},

@@ -259,6 +259,9 @@ null
 ### mapSyncThreshold
 Delta kPa for MAP sync
 
+### torqueReductionIgnitionCut
+How many % of ignition events will be cut
+
 ### cylinderBore
 @@CYLINDER_BORE_TOOLTIP@@
 
@@ -526,6 +529,9 @@ How far above idle speed do we consider idling, i.e. coasting detection threshol
 ### applyNonlinearBelowPulse
 Apply nonlinearity correction below a pulse of this duration. Pulses longer than this duration will receive no adjustment.
 
+### torqueReductionArmingRpm
+Since torque reduction pin is usually shared with launch control, most people have an RPM where behavior under that is Launch Control, over that is Flat Shift/Torque Reduction
+
 ### stoichRatioSecondary
 Stoichiometric ratio for your secondary fuel. This value is used when the Flex Fuel sensor indicates E100, typically 9.0
 
@@ -591,9 +597,6 @@ This property is useful if using rusEFI as TCM or BCM only
 
 ### enableCanVss
 Read VSS from OEM CAN bus according to selected CAN vehicle configuration.
-
-### enableInnovateLC2
-
 
 ### showHumanReadableWarning
 
@@ -808,6 +811,12 @@ Be careful enabling this: some engines are known to self-disassemble their valve
 ### launchSparkCutEnable
 This is the Cut Mode normally used
 
+### torqueReductionEnabled
+
+
+### torqueReductionTriggerPinInverted
+
+
 ### verboseIsoTp
 Are you a developer troubleshooting TS over CAN ISO/TP?
 
@@ -896,7 +905,7 @@ Some engines are OK running semi-random sequential while other engine require ph
 If enabled, use a curve for RPM limit (based on coolant temperature) instead of a constant value.
 
 ### forceO2Heating
-If enabled, don't wait for engine start to heat O2 sensors. WARNING: this will reduce the life of your sensor, as condensation in the exhaust from a cold start can crack the sensing element.
+If enabled, don't wait for engine start to heat O2 sensors.\nWARNING: this will reduce the life of your sensor, as condensation in the exhaust from a cold start can crack the sensing element.
 
 ### invertVvtControlIntake
 If increased VVT duty cycle increases the indicated VVT angle, set this to 'advance'. If it decreases, set this to 'retard'. Most intake cams use 'advance', and most exhaust cams use 'retard'.
@@ -942,6 +951,9 @@ set warningPeriod X
 
 ### idleStepperTotalSteps
 
+
+### torqueReductionArmingApp
+Pedal position to realize that we need to reduce torque when the trigger pin is uuuh triggered
 
 ### tachPulseDuractionMs
 Duration in ms or duty cycle depending on selected mode
@@ -1050,6 +1062,9 @@ on IGN voltage detection turn fuel pump on to build fuel pressure
 
 ### idlePidRpmDeadZone
 If the RPM closer to target than this value, disable closed loop idle correction to prevent oscillation
+
+### torqueReductionTime
+For how long after the pin has been triggered will the cut/reduction stay active. After that, even if the pin is still triggered, torque is re-introduced
 
 ### mc33810DisableRecoveryMode
 See Over/Undervoltage Shutdown/Retry bit in documentation
@@ -1162,8 +1177,8 @@ For decel we simply multiply delta of TPS and tFor decel we do not use table?!
 ### tpsDecelEnleanmentMultiplier
 Magic multiplier, we multiply delta of TPS and get fuel squirt duration
 
-### auxSerialSpeed
-
+### torqueReductionIgnitionRetard
+How many degrees of timing advance will be reduced during the Torque Reduction Time
 
 ### throttlePedalSecondaryUpVoltage
 
