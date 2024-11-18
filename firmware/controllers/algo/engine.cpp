@@ -283,7 +283,7 @@ Engine::Engine()
 	, softSparkLimiter(false), hardSparkLimiter(true)
 
 #if EFI_ANTILAG_SYSTEM
-//	, ALSsoftSparkLimiter(false)
+	, ALSsoftSparkLimiter(false)
 #endif /* EFI_ANTILAG_SYSTEM */
 
 #endif // EFI_LAUNCH_CONTROL
