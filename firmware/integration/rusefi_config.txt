@@ -1948,7 +1948,7 @@ uint8_t[KNOCK_TABLE_SIZE x KNOCK_TABLE_SIZE] autoscale maxKnockRetardTable;;"deg
 uint8_t[KNOCK_TABLE_SIZE] maxKnockRetardLoadBins;;"%", 1, 0, 0, 250, 0
 uint8_t[KNOCK_TABLE_SIZE] autoscale maxKnockRetardRpmBins;;"RPM", 100, 0, 0, 25000, 0
 
-int16_t[4 x 4] autoscale ALSTimingRetardTable;;"deg", 0.1, 0, -60, 0, 1
+int16_t[4 x 4] autoscale ALSTimingRetardTable;;"deg", 0.1, 0, -50, 10, 1
 uint16_t[4] alsIgnRetardLoadBins;;"TPS", 1, 0, 0, 100, 0
 uint16_t[4] alsIgnRetardrpmBins;;"RPM",	   1, 0, 0, 25000, 0
 
