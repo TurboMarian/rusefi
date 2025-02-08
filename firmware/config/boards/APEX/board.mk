@@ -1,0 +1,11 @@
+# List of all the board related files.
+BOARDCPPSRC =  $(BOARD_DIR)/board_configuration.cpp
+
+# Override DEFAULT_ENGINE_TYPE
+
+DDEFS += -DFIRMWARE_ID=\"APEX\"
+DDEFS += -DEFI_SOFTWARE_KNOCK=TRUE -DSTM32_ADC_USE_ADC3=TRUE
+DDEFS += $(PRIMARY_COMMUNICATION_PORT_USART2)
+
+# Lua size
+DDEFS += -DLUA_USER_HEAP=16000
