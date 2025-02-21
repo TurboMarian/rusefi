@@ -365,7 +365,7 @@
 	#endif
 	#define ENABLE_PERF_TRACE TRUE
 
-	#define LUA_USER_HEAP 25000
+	#define LUA_USER_HEAP 45000
 #else
 	#ifndef ENABLE_PERF_TRACE
 	// small memory F40x can't fit perf trace
