@@ -136,9 +136,9 @@ void setBoardConfigOverrides() {
 	engineConfiguration->iat.config.bias_resistor = 2490;
 
 	//SERIAL 
-	engineConfiguration->binarySerialTxPin = Gpio::Unassigned;
-	engineConfiguration->binarySerialRxPin = Gpio::Unassigned;
-	//engineConfiguration->tunerStudioSerialSpeed = SERIAL_SPEED;
+	engineConfiguration->binarySerialTxPin = Gpio::D5;
+	engineConfiguration->binarySerialRxPin = Gpio::D6;
+	engineConfiguration->tunerStudioSerialSpeed = 230400;
 	//engineConfiguration->uartConsoleSerialSpeed = SERIAL_SPEED;
 
 
