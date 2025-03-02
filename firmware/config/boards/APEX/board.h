@@ -231,7 +231,7 @@
 						   PIN_OSPEED_HIGH(14) | \
 						   PIN_OSPEED_HIGH(15))
 #define VAL_GPIOB_PUPDR (PIN_PUPDR_FLOATING(0) |  \
-						 PIN_PUPDR_PULLDOWN(1) |  \
+						 PIN_PUPDR_FLOATING(1) |  \
 						 PIN_PUPDR_PULLDOWN(2) |  \
 						 PIN_PUPDR_PULLDOWN(3) |  \
 						 PIN_PUPDR_PULLDOWN(4) |  \
@@ -333,9 +333,9 @@
 #define VAL_GPIOC_PUPDR (PIN_PUPDR_PULLDOWN(0) |  \
 						 PIN_PUPDR_FLOATING(1) |  \
 						 PIN_PUPDR_FLOATING(2) |  \
-						 PIN_PUPDR_PULLDOWN(3) |  \
-						 PIN_PUPDR_PULLDOWN(4) |  \
-						 PIN_PUPDR_PULLDOWN(5) |  \
+						 PIN_PUPDR_FLOATING(3) |  \
+						 PIN_PUPDR_FLOATING(4) |  \
+						 PIN_PUPDR_FLOATING(5) |  \
 						 PIN_PUPDR_PULLDOWN(6) |  \
 						 PIN_PUPDR_PULLDOWN(7) |  \
 						 PIN_PUPDR_FLOATING(8) |  \
@@ -638,8 +638,8 @@
 #define VAL_GPIOF_PUPDR (PIN_PUPDR_PULLDOWN(0) |  \
 						 PIN_PUPDR_PULLDOWN(1) |  \
 						 PIN_PUPDR_PULLDOWN(2) |  \
-						 PIN_PUPDR_PULLDOWN(3) |  \
-						 PIN_PUPDR_PULLDOWN(4) |  \
+						 PIN_PUPDR_FLOATING(3) |  \
+						 PIN_PUPDR_FLOATING(4) |  \
 						 PIN_PUPDR_PULLDOWN(5) |  \
 						 PIN_PUPDR_PULLDOWN(6) |  \
 						 PIN_PUPDR_PULLDOWN(7) |  \
