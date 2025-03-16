@@ -126,7 +126,8 @@ expected<float> Lps25::readPressureKpa() {
 uint8_t Lps25::regCr1() const {
 	switch (m_type)
 	{
-	case Type::Lps22:
+	case Type::Lps22HB:
+  case Type::Lps22HH:
 		return REG_Cr1_Lps22;
 	case Type::Lps25:
 	default:
