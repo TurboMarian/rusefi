@@ -14,6 +14,8 @@
 
 static constexpr uint8_t addr = 0x5C;
 static constexpr uint8_t expectedWhoAmILps22 = 0xB1;
+static constexpr uint8_t expectedWhoAmILps22HB = 0xB1;
+static constexpr uint8_t expectedWhoAmILps22HH = 0xB3;
 static constexpr uint8_t expectedWhoAmILps25 = 0xBD;
 
 // Control register 1
@@ -25,6 +27,7 @@ static constexpr uint8_t expectedWhoAmILps25 = 0xBD;
 #define LPS_SR_P_DA (1 << 1)	// Pressure data available
 
 #define REG_WhoAmI 0x0F
+#define REG_IF_CTRL 0x0E
 
 // register address different on LPS22 vs LPS25
 #define REG_Cr1_Lps22 0x10
@@ -44,9 +47,12 @@ bool Lps25::init(brain_pin_e scl, brain_pin_e sda) {
 
 	switch (whoAmI)
 	{
-	case expectedWhoAmILps22:
-		m_type = Type::Lps22;
-		break;
+    case expectedWhoAmILps22HB:
+    m_type = Type::Lps22HB;
+    break;
+    case expectedWhoAmILps22HH:
+    m_type = Type::Lps22HH;
+    break;
 	case expectedWhoAmILps25:
 		m_type = Type::Lps25;
 		break;
@@ -54,6 +60,10 @@ bool Lps25::init(brain_pin_e scl, brain_pin_e sda) {
 		// chip not detected
 		return false;
 	}
+
+  if (m_type == Type::Lps22HH) {
+    m_i2c.writeRegister(addr, REG_IF_CTRL, 0x00);
+}
 
 	uint8_t cr1 = 
 		LPS_CR1_ODR_25hz |	// 25hz update rate
@@ -116,7 +126,8 @@ expected<float> Lps25::readPressureKpa() {
 uint8_t Lps25::regCr1() const {
 	switch (m_type)
 	{
-	case Type::Lps22:
+	case Type::Lps22HB:
+  case Type::Lps22HH:
 		return REG_Cr1_Lps22;
 	case Type::Lps25:
 	default:
