@@ -922,7 +922,6 @@ void canDashboardHaltech(CanCycle cycle) {
 			msg.setShortValueMsb((Sensor::getOrZero(SensorType::FuelTemperature) + C_K_OFFSET) * 10, 4);
 			/* Oil Temperature */
 			msg.setShortValueMsb((Sensor::getOrZero(SensorType::OilTemperature) + 273.15) * 10, 6);
- 		}
 		}
 
 		/* 0x3E1 = 5Hz rate */
