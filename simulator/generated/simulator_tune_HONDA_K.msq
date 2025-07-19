@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <msq xmlns="http://www.msefi.com/:msq">
     <page/>
-    <page number="0" size="22756">
+    <page number="0" size="22804">
         <constant name="accelEnrichmentMode">"MS Adder"</constant>
         <constant name="accelerometerCsPin">"NONE"</constant>
         <constant name="accelerometerCsPinMode">"default"</constant>
@@ -96,6 +96,24 @@
          800.0
          3750.0
          7000.0
+</constant>
+        <constant cols="1" digits="0" name="alsFuelCutLoadBins" rows="4">
+         0.0
+         0.0
+         0.0
+         0.0
+</constant>
+        <constant cols="1" digits="0" name="alsFuelCutrpmBins" rows="4">
+         0.0
+         0.0
+         0.0
+         0.0
+</constant>
+        <constant cols="4" digits="1" name="ALSFuelCutTable" rows="4">
+         0.0 0.0 0.0 0.0
+         0.0 0.0 0.0 0.0
+         0.0 0.0 0.0 0.0
+         0.0 0.0 0.0 0.0
 </constant>
         <constant digits="2" name="ALSIdleAdd" units="%">0.0</constant>
         <constant cols="1" digits="0" name="alsIgnRetardLoadBins" rows="4">
@@ -5075,7 +5093,7 @@ end</constant>
 </constant>
         <constant name="yesUnderstandLocking">"no"</constant>
     </page>
-    <versionInfo firmwareInfo="20250713" nPages="1" signature="rusEFI master.2025.07.19.f407-discovery.3327459293" version="5.0"/>
+    <versionInfo firmwareInfo="20250713" nPages="1" signature="rusEFI master.2025.07.19.f407-discovery.4073727302" version="5.0"/>
     <bibliography author="rusEFI 20250713" writeDate="date"/>
     <settings/>
     <userComments/>
