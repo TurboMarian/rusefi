@@ -65,7 +65,7 @@ angle_t getRunningAdvance(float rpm, float engineLoad) {
 			config->alsIgnRetardLoadBins, throttleIntent,
 			config->alsIgnRetardrpmBins, rpm
 		);
-		advanceAngle += engine->antilagController.timingALSCorrection;
+		advanceAngle += engine->antilagController.timingALSCorrection - advanceAngle;
 	}
 #endif /* EFI_ANTILAG_SYSTEM */
 
