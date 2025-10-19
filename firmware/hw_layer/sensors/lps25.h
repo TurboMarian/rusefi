@@ -24,7 +24,8 @@ private:
 	BitbangI2c m_i2c;
 
 	enum class Type {
-		Lps22,
+		Lps22HB,
+    Lps22HH,
 		Lps25,
 	};
 
