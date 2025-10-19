@@ -229,7 +229,7 @@ public:
 #endif // EFI_ANTILAG_SYSTEM
 
 #if EFI_ANTILAG_SYSTEM
-//    SoftSparkLimiter ALSsoftSparkLimiter{false};
+    SoftSparkLimiter ALSsoftSparkLimiter{false};
 #endif /* EFI_ANTILAG_SYSTEM */
 
 #if EFI_SHAFT_POSITION_INPUT

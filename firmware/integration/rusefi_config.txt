@@ -2179,9 +2179,13 @@ int16_t[ALS_SIZE x ALS_RPM_SIZE] autoscale ALSFuelAdjustment;;"percent", 0.1, 0,
 uint16_t[ALS_SIZE] alsFuelAdjustmentLoadBins;;"TPS", 1, 0, 0, 100, 0
 uint16_t[ALS_RPM_SIZE] alsFuelAdjustmentrpmBins;;"RPM",	1, 0, 0, 25000, 0
 
-int16_t[ALS_SIZE x ALS_RPM_SIZE] autoscale ALSIgnSkipTable;;"ratio", 10, 0, 0, 50, 1
+int16_t[ALS_SIZE x ALS_RPM_SIZE] autoscale ALSIgnSkipTable;;"ratio", 10, 0, 0, 30, 1
 uint16_t[ALS_SIZE] alsIgnSkipLoadBins;;"TPS", 1, 0, 0, 100, 0
 uint16_t[ALS_RPM_SIZE] alsIgnSkiprpmBins;;"RPM",	   1, 0, 0, 25000, 0
+
+int16_t[ALS_SIZE x ALS_SIZE] autoscale ALSFuelCutTable;;"ratio", 10, 0, 0, 50, 1
+uint16_t[ALS_SIZE] alsFuelCutLoadBins;;"TPS", 1, 0, 0, 100, 0
+uint16_t[ALS_SIZE] alsFuelCutrpmBins;;"RPM",	   1, 0, 0, 25000, 0
 
 #define BLEND_TABLE_COUNT 8
 
