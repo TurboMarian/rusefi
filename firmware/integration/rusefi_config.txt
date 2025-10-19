@@ -2171,7 +2171,7 @@ uint8_t[KNOCK_TABLE_RPM_SIZE] autoscale maxKnockRetardRpmBins;;"RPM", @@RPM_AS_B
 #define ALS_SIZE 4
 #define ALS_RPM_SIZE 4
 
-int16_t[ALS_SIZE x ALS_RPM_SIZE] autoscale ALSTimingRetardTable;;"deg", 0.1, 0, -60, 0, 1
+int16_t[ALS_SIZE x ALS_RPM_SIZE] autoscale ALSTimingRetardTable;;"deg", 0.1, 0, -50, 10, 1
 uint16_t[ALS_SIZE] alsIgnRetardLoadBins;;"TPS", 1, 0, 0, 100, 0
 uint16_t[ALS_RPM_SIZE] alsIgnRetardrpmBins;;"RPM",	   1, 0, 0, 25000, 0
 
