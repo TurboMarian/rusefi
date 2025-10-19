@@ -1,10 +1,9 @@
 /**
- * @file boards/coreECU/board_configuration.cpp
+ * @file boards/CoreECU/board_configuration.cpp
  * @brief Configuration defaults for the coreECU board
- * @details This file contains default configurations for the coreECU board.
- * It initializes various pins, sensors, and communication settings.
+ * @details Standalone version without board_overrides.h
  *
- * @author Turbo Marian, 2023
+ * Author: Turbo Marian, 2023
  */
 
 #include "pch.h"
@@ -35,81 +34,71 @@ static void setIgnitionPins() {
     engineConfiguration->ignitionPins[7] = Gpio::E8;
 }
 
-void setBoardConfigOverrides(void) {
-    // Throttle #1
-	// PWM pin
-	engineConfiguration->etbIo[0].controlPin = Gpio::E7;
-	// DIR pin
-	engineConfiguration->etbIo[0].directionPin1 = Gpio::B1;
-	// Disable pin
-	engineConfiguration->etbIo[0].disablePin = Gpio::B0;
-	// Unused
-	engineConfiguration->etbIo[0].directionPin2 = Gpio::Unassigned;
-
-	// Throttle #2
-	// PWM pin
-	engineConfiguration->etbIo[1].controlPin = Gpio::Unassigned;
-	// DIR pin
-	engineConfiguration->etbIo[1].directionPin1 = Gpio::Unassigned;
-	// Disable pin
-	engineConfiguration->etbIo[1].disablePin = Gpio::Unassigned;
-	// Unused
-	engineConfiguration->etbIo[1].directionPin2 = Gpio::Unassigned;
-
-	engineConfiguration->etb_use_two_wires = false;
-
-	engineConfiguration->clt.config.bias_resistor = 2490;
-	engineConfiguration->iat.config.bias_resistor = 2490;
-
-	engineConfiguration->baroSensor.hwChannel = EFI_ADC_NONE;
-
-	engineConfiguration->lps25BaroSensorScl = Gpio::Unassigned;
-	engineConfiguration->lps25BaroSensorSda = Gpio::Unassigned;
-
-	//engineConfiguration->afr.hwChannel = EFI_ADC_6;
-	// setEgoSensor(ES_14Point7_Free);
-}
-
-void setPinConfigurationOverrides(void) {
-
-    //CAN 1 bus overwrites
-	engineConfiguration->canTxPin = Gpio::D1;
-	engineConfiguration->canRxPin = Gpio::D0;
-
-	//CAN 2 bus overwrites
-	engineConfiguration->can2RxPin = Gpio::Unassigned;
-	engineConfiguration->can2TxPin = Gpio::Unassigned;
-}
-
 static void setupVbatt() {
-    
-	engineConfiguration->analogInputDividerCoefficient = 1.47f;
+    engineConfiguration->analogInputDividerCoefficient = 1.47f;
     engineConfiguration->vbattDividerCoeff = (6.34f / 1.0f);
     engineConfiguration->vbattAdcChannel = EFI_ADC_14;
     engineConfiguration->adcVcc = 3.3f;
 }
 
-Gpio getCommsLedPin() {
-    return Gpio::B8;
-}
-Gpio getRunningLedPin() {
-    return Gpio::B7;
-}
-Gpio getWarningLedPin() {
-    return Gpio::B6;
+/* --- Main board-specific configuration functions --- */
+
+static void CoreECU_ConfigOverrides(void) {
+    // Throttle #1
+    engineConfiguration->etbIo[0].controlPin = Gpio::E7;
+    engineConfiguration->etbIo[0].directionPin1 = Gpio::B1;
+    engineConfiguration->etbIo[0].disablePin = Gpio::B0;
+    engineConfiguration->etbIo[0].directionPin2 = Gpio::Unassigned;
+
+    // Throttle #2
+    engineConfiguration->etbIo[1].controlPin = Gpio::Unassigned;
+    engineConfiguration->etbIo[1].directionPin1 = Gpio::Unassigned;
+    engineConfiguration->etbIo[1].disablePin = Gpio::Unassigned;
+    engineConfiguration->etbIo[1].directionPin2 = Gpio::Unassigned;
+
+    engineConfiguration->etb_use_two_wires = false;
+
+    engineConfiguration->clt.config.bias_resistor = 2490;
+    engineConfiguration->iat.config.bias_resistor = 2490;
+
+    engineConfiguration->baroSensor.hwChannel = EFI_ADC_NONE;
+
+    engineConfiguration->lps25BaroSensorScl = Gpio::Unassigned;
+    engineConfiguration->lps25BaroSensorSda = Gpio::Unassigned;
+
+    // CAN 1 bus overrides
+    engineConfiguration->canTxPin = Gpio::D1;
+    engineConfiguration->canRxPin = Gpio::D0;
+
+    // CAN 2 bus overrides
+    engineConfiguration->can2RxPin = Gpio::Unassigned;
+    engineConfiguration->can2TxPin = Gpio::Unassigned;
+
+    // AFR
+    engineConfiguration->afr.hwChannel = EFI_ADC_6;
+    setEgoSensor(ES_14Point7_Free);
 }
 
-void setBoardDefaultConfiguration(void) {
+static void CoreECU_DefaultConfiguration(void) {
     setInjectorPins();
     setIgnitionPins();
     setupVbatt();
-    
+
     engineConfiguration->isSdCardEnabled = true;
 
     engineConfiguration->canWriteEnabled = true;
-    engineConfiguration->canReadEnabled = true;
+    engineConfiguration->canReadEnabled  = true;
     engineConfiguration->canSleepPeriodMs = 50;
 
-    engineConfiguration->canBaudRate = B1MBPS;
+    engineConfiguration->canBaudRate  = B1MBPS;
     engineConfiguration->can2BaudRate = B500KBPS;
+}
+
+Gpio getCommsLedPin()   { return Gpio::B8; }
+Gpio getRunningLedPin() { return Gpio::B7; }
+Gpio getWarningLedPin() { return Gpio::B6; }
+
+void setup_custom_board_overrides(void) {
+    CoreECU_ConfigOverrides();
+    CoreECU_DefaultConfiguration();
 }
