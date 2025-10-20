@@ -94,9 +94,13 @@ static void CoreECU_DefaultConfiguration(void) {
     engineConfiguration->can2BaudRate = B500KBPS;
 }
 
+/* --- LED pins (global API expected by firmware) --- */
+
 Gpio getCommsLedPin()   { return Gpio::B8; }
 Gpio getRunningLedPin() { return Gpio::B7; }
 Gpio getWarningLedPin() { return Gpio::B6; }
+
+/* --- Required global function --- */
 
 void setup_custom_board_overrides(void) {
     CoreECU_ConfigOverrides();

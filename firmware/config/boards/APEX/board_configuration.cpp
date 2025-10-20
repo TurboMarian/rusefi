@@ -1,12 +1,12 @@
 /**
  * @file boards/apex/board_configuration.cpp
- *
- * @brief Configuration defaults for the core48 board
- *
- * @author Turbo Marian,  2022
+ * @brief Configuration defaults for the apex board (standalone)
+ * @author Turbo Marian, 2025
  */
 
 #include "pch.h"
+
+/* --- Injectors & Ignition --- */
 
 static void setInjectorPins() {
 	engineConfiguration->injectionPinMode = OM_DEFAULT;
@@ -34,98 +34,87 @@ static void setIgnitionPins() {
 	engineConfiguration->ignitionPins[7] = Gpio::E8;
 }
 
+/* --- LEDs --- */
 
-// PE3 is error LED, configured in board.mk
-Gpio getCommsLedPin() {
-	return Gpio::B7;
-}
+Gpio getCommsLedPin()   { return Gpio::B7; }
+Gpio getRunningLedPin() { return Gpio::B8; }
+Gpio getWarningLedPin() { return Gpio::B9; }
 
-Gpio getRunningLedPin() {
-	return Gpio::B8;
-}
-
-Gpio getWarningLedPin() {
-	return Gpio::B9;
-}
+/* --- ETB --- */
 
 static void setEtbConfig() {
-	// TLE9201 driver
-	// This chip has three control pins:
-	// DIR - sets direction of the motor
-	// PWM - pwm control (enable high, coast low)
-	// DIS - disables motor (enable low)
-
 	// Throttle #1
-	// PWM pin
-	engineConfiguration->etbIo[0].controlPin = Gpio::E7;
-	// DIR pin
-	engineConfiguration->etbIo[0].directionPin1 = Gpio::G0;
-	// Disable pin
-	engineConfiguration->etbIo[0].disablePin = Gpio::G1;
-	// Unused
-	engineConfiguration->etbIo[0].directionPin2 = Gpio::Unassigned;
+	engineConfiguration->etbIo[0].controlPin     = Gpio::E7;
+	engineConfiguration->etbIo[0].directionPin1  = Gpio::G0;
+	engineConfiguration->etbIo[0].disablePin     = Gpio::G1;
+	engineConfiguration->etbIo[0].directionPin2  = Gpio::Unassigned;
 
 	// Throttle #2
-	// PWM pin
-	engineConfiguration->etbIo[1].controlPin = Gpio::F15;
-	// DIR pin
-	engineConfiguration->etbIo[1].directionPin1 = Gpio::F13;
-	// Disable pin
-	engineConfiguration->etbIo[1].disablePin = Gpio::F14;
-	// Unused
-	engineConfiguration->etbIo[1].directionPin2 = Gpio::Unassigned;
+	engineConfiguration->etbIo[1].controlPin     = Gpio::F15;
+	engineConfiguration->etbIo[1].directionPin1  = Gpio::F13;
+	engineConfiguration->etbIo[1].disablePin     = Gpio::F14;
+	engineConfiguration->etbIo[1].directionPin2  = Gpio::Unassigned;
 
-	// we only have pwm/dir, no dira/dirb
 	engineConfiguration->etb_use_two_wires = false;
 }
 
-static void 
-setupVbatt() {
-	// 5.6k high side/10k low side = 1.56 ratio divider
-	engineConfiguration->analogInputDividerCoefficient = 1.6f;
-	
-	// 6.34k high side/ 1k low side
-	engineConfiguration->vbattDividerCoeff = (6.34 + 1) / 1; 
-
-	// Battery sense on PA7
-	engineConfiguration->vbattAdcChannel = EFI_ADC_0;
-
-	engineConfiguration->adcVcc = 3.3f;
-}
+/* --- Stepper Idle --- */
 
 static void setStepperConfig() {
 	engineConfiguration->idle.stepperDirectionPin = Gpio::Unassigned;
-	engineConfiguration->idle.stepperStepPin = Gpio::Unassigned;
-	engineConfiguration->stepperEnablePin = Gpio::Unassigned;
+	engineConfiguration->idle.stepperStepPin      = Gpio::Unassigned;
+	engineConfiguration->stepperEnablePin         = Gpio::Unassigned;
 }
+
+/* --- Vbatt sensing --- */
+
+static void setupVbatt() {
+	engineConfiguration->analogInputDividerCoefficient = 1.6f;
+	engineConfiguration->vbattDividerCoeff = (6.34f + 1) / 1.0f;
+	engineConfiguration->vbattAdcChannel = EFI_ADC_0; // PA7
+	engineConfiguration->adcVcc = 3.3f;
+}
+
+/* --- SD Card --- */
 
 static void setupSdCard() {
-	
-	//SD CARD overwrites
-	engineConfiguration->sdCardSpiDevice = SPI_DEVICE_2;		
-
+	engineConfiguration->sdCardSpiDevice = SPI_DEVICE_2;
 	engineConfiguration->is_enabled_spi_2 = true;
-	engineConfiguration->spi2sckPin = Gpio::B13;
+	engineConfiguration->spi2sckPin  = Gpio::B13;
 	engineConfiguration->spi2misoPin = Gpio::B14;
 	engineConfiguration->spi2mosiPin = Gpio::B15;
+	engineConfiguration->sdCardCsPin = Gpio::G7;
 }
 
-static void setupEGT() {
-	
-	//EGT overwrites
+/* --- EGT --- */
 
-	engineConfiguration->spi1sckPin = Gpio::B3;
+static void setupEGT() {
+	engineConfiguration->spi1sckPin  = Gpio::B3;
 	engineConfiguration->spi1misoPin = Gpio::B4;
 	engineConfiguration->spi1mosiPin = Gpio::Unassigned;
-	engineConfiguration->is_enabled_spi_1 = true;
 
+	engineConfiguration->is_enabled_spi_1 = true;
 	engineConfiguration->max31855spiDevice = SPI_DEVICE_1;
 	engineConfiguration->max31855_cs[0] = Gpio::D2;
 	engineConfiguration->max31855_cs[1] = Gpio::D3;
 }
 
+/* --- Sensor Defaults --- */
 
-void setBoardConfigOverrides() {
+static void setupDefaultSensorInputs() {
+	engineConfiguration->afr.hwChannel    = EFI_ADC_11; // PC1
+	engineConfiguration->afr.hwChannel2   = EFI_ADC_10; // PC0
+	setEgoSensor(ES_14Point7_Free);
+
+	engineConfiguration->map.sensor.hwChannel = EFI_ADC_12; // PC2
+	engineConfiguration->map.sensor.type = MT_MPXH6400;
+
+	engineConfiguration->baroSensor.hwChannel = EFI_ADC_NONE;
+}
+
+/* --- Main override and default configuration --- */
+
+static void ApexBoard_ConfigOverrides() {
 	setupVbatt();
 	setupSdCard();
 	setEtbConfig();
@@ -135,61 +124,49 @@ void setBoardConfigOverrides() {
 	engineConfiguration->clt.config.bias_resistor = 2490;
 	engineConfiguration->iat.config.bias_resistor = 2490;
 
-	//SERIAL 
+	// Serial
 	engineConfiguration->binarySerialTxPin = Gpio::D5;
 	engineConfiguration->binarySerialRxPin = Gpio::D6;
 	engineConfiguration->tunerStudioSerialSpeed = 230400;
-	//engineConfiguration->uartConsoleSerialSpeed = SERIAL_SPEED;
 
-
-
-	//CAN 1 bus overwrites
+	// CAN 1
 	engineConfiguration->canRxPin = Gpio::D0;
 	engineConfiguration->canTxPin = Gpio::D1;
 
-	//CAN 2 bus overwrites
+	// CAN 2
 	engineConfiguration->can2RxPin = Gpio::B5;
 	engineConfiguration->can2TxPin = Gpio::B6;
 
-	//onboard lps22 barometer
+	// Baro (I2C)
 	engineConfiguration->lps25BaroSensorScl = Gpio::A8;
 	engineConfiguration->lps25BaroSensorSda = Gpio::C9;
 }
 
-static void setupDefaultSensorInputs() {
-
-	engineConfiguration->afr.hwChannel = EFI_ADC_11; //PC1
-	engineConfiguration->afr.hwChannel2 = EFI_ADC_10; //PC0
-	setEgoSensor(ES_14Point7_Free);
-	
-	engineConfiguration->map.sensor.hwChannel = EFI_ADC_12; //PC2
-	engineConfiguration->map.sensor.type = MT_MPXH6400;
-	
-	engineConfiguration->baroSensor.hwChannel = EFI_ADC_NONE;
-
-}
-
-
-void setBoardDefaultConfiguration(void) {
+static void ApexBoard_DefaultConfiguration() {
 	setInjectorPins();
 	setIgnitionPins();
 	setupDefaultSensorInputs();
 
-
 	engineConfiguration->canWriteEnabled = true;
-	engineConfiguration->canReadEnabled = true;
+	engineConfiguration->canReadEnabled  = true;
 	engineConfiguration->canSleepPeriodMs = 50;
 
-	engineConfiguration->canBaudRate = B500KBPS;
+	engineConfiguration->canBaudRate  = B1MBPS;
 	engineConfiguration->can2BaudRate = B500KBPS;
 
-	engineConfiguration->sdCardCsPin = Gpio::G7;
-		
+	// Lua stub
 	strncpy(config->luaScript, R"(
 
 	function onTick()
 
 	end
 
-    )", efi::size(config->luaScript));
+	)", efi::size(config->luaScript));
+}
+
+/* --- Entry point expected by firmware --- */
+
+void setup_custom_board_overrides(void) {
+	ApexBoard_ConfigOverrides();
+	ApexBoard_DefaultConfiguration();
 }
