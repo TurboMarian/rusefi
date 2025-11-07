@@ -20,6 +20,7 @@ public:
 	bool isALSMaxRPMCondition(float rpm) const;
 	bool isALSMinCLTCondition() const;
 	bool isALSMaxCLTCondition() const;
+	bool isALSMaxEGTCondition() const;
 	bool isALSMaxThrottleIntentCondition() const;
 	bool isInsideALSSwitchCondition();
 	bool isInsideALSTimerCondition();

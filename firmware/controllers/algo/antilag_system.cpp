@@ -54,6 +54,12 @@ bool AntilagSystemBase::isALSMaxCLTCondition() const {
 	return engineConfiguration->ALSMaxCLT > clt;
 }
 
+bool AntilagSystemBase::isALSMaxEGTCondition() const {
+	int egt = Sensor::getOrZero(SensorType::EGT1);
+
+	return engineConfiguration->ALSMaxEGT > egt;
+}
+
 bool AntilagSystemBase::isALSMaxThrottleIntentCondition() const {
 	int throttleIntent = Sensor::getOrZero(SensorType::DriverThrottleIntent);
 

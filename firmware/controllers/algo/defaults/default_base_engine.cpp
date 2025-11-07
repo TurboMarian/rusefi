@@ -270,6 +270,7 @@ void setDefaultBaseEngine() {
 	engineConfiguration->ALSMaxRPM = 3200;
 	engineConfiguration->ALSMaxDuration = 3;
 	engineConfiguration->ALSMaxCLT = 105;
+	engineConfiguration->ALSMaxEGT = 800;
 //	engineConfiguration->alsMinPps = 10;
 	engineConfiguration->alsMinTimeBetween = 5;
 	engineConfiguration->alsEtbPosition = 30;

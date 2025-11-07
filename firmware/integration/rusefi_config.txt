@@ -1630,6 +1630,7 @@ switch_input_pin_e[LUA_DIGITAL_INPUT_COUNT iterate] luaDigitalInputPins;
 int16_t ALSMaxDuration;;"sec", 1, 0, 0, 10, 0
 	int8_t ALSMinCLT;;"SPECIAL_CASE_TEMPERATURE", 1, 0, 0, 90, 0
 	int8_t ALSMaxCLT;;"SPECIAL_CASE_TEMPERATURE", 1, 0, 0, 105, 0
+	int16_t ALSMaxEGT;;"SPECIAL_CASE_TEMPERATURE", 1, 0, 0, 1000, 0
 uint8_t alsMinTimeBetween;;"", 1, 0, 0, 250, 0
 uint8_t alsEtbPosition;;"", 1, 0, 0, 250, 0
     uint8_t acRelayAlternatorDutyAdder;;"%", 1, 0, 0, 100, 0
