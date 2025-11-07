@@ -632,24 +632,27 @@ void onTriggerEventSparkLogic(float rpm, efitick_t edgeTimestamp, float currentP
 #endif // EFI_LAUNCH_CONTROL
 
 #if EFI_ANTILAG_SYSTEM && EFI_LAUNCH_CONTROL
-      
-             if (engine->antilagController.isAntilagCondition) {
-            if (engine->ALSsoftSparkLimiter.shouldSkip()) {
-              continue;
-            }
-          }
-          float throttleIntent = Sensor::getOrZero(SensorType::DriverThrottleIntent);
-          engine->antilagController.timingALSSkip = interpolate3d(
+
+    if (engine->antilagController.isAntilagCondition) {
+    
+        float throttleIntent = Sensor::getOrZero(SensorType::DriverThrottleIntent);
+        float duty_raw = interpolate3d(
             config->ALSIgnSkipTable,
             config->alsIgnSkipLoadBins, throttleIntent,
             config->alsIgnSkiprpmBins, rpm
-          );
-      
-            auto ALSSkipRatio = engine->antilagController.timingALSSkip;
-            float luaSoftSparkSkip = ALSSkipRatio / 1000.0f;
-            float tractionControlSparkSkip = 0.0f;
-            float launchControllerSparkSkipRatio = 0.0f;
-          engine->ALSsoftSparkLimiter.updateTargetSkipRatio(luaSoftSparkSkip, tractionControlSparkSkip, launchControllerSparkSkipRatio);
+        );
+
+        constexpr float ALS_IGN_SKIP_TABLE_SCALE = 1.0f;
+
+        float dutyPct = clampF(duty_raw * ALS_IGN_SKIP_TABLE_SCALE, 0.0f, 100.0f);
+        float alsHardRatio = dutyPct / 100.0f;
+
+        engine->hardSparkLimiter.updateTargetSkipRatio(alsHardRatio, /*traction*/0.0f, /*other*/0.0f);
+
+        if (engine->hardSparkLimiter.shouldSkip()) {
+            continue;
+        }
+    }
 
 #endif // EFI_ANTILAG_SYSTEM
 
