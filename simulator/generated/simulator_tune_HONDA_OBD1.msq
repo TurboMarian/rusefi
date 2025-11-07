@@ -148,6 +148,7 @@
 </constant>
         <constant digits="0" name="ALSMaxCLT" units="C">105.0</constant>
         <constant digits="0" name="ALSMaxDuration" units="sec">3.0</constant>
+        <constant digits="0" name="ALSMaxEGT" units="C">800.0</constant>
         <constant digits="0" name="ALSMaxRPM" units="rpm">3200.0</constant>
         <constant digits="0" name="ALSMaxTPS" units="%">5.0</constant>
         <constant digits="0" name="ALSMinCLT" units="C">0.0</constant>
@@ -4952,7 +4953,7 @@ end</constant>
 </constant>
         <constant name="yesUnderstandLocking">"no"</constant>
     </page>
-    <versionInfo firmwareInfo="20251017" nPages="1" signature="rusEFI master.2025.11.07.f407-discovery.1222993507" version="5.0"/>
+    <versionInfo firmwareInfo="20251017" nPages="1" signature="rusEFI master.2025.11.07.f407-discovery.2700838110" version="5.0"/>
     <bibliography author="rusEFI 20251017" writeDate="date"/>
     <settings/>
     <userComments/>
