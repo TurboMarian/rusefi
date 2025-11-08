@@ -79,6 +79,7 @@ bool AntilagSystemBase::isAntilagConditionMet(float rpm) {
 	ALSMaxRPMCondition = isALSMaxRPMCondition(rpm);
 	ALSMinCLTCondition = isALSMinCLTCondition();
 	ALSMaxCLTCondition = isALSMaxCLTCondition();
+	ALSMaxEGTCondition = isALSMaxEGTCondition();
 	ALSMaxThrottleIntentCondition = isALSMaxThrottleIntentCondition();
 	ALSSwitchCondition = isInsideALSSwitchCondition();
 	ALSTimerCondition = isInsideALSTimerCondition();
@@ -91,6 +92,7 @@ todo: looking for a hero to figure out unit test part of this
 	    ALSMaxRPMCondition &&
 	    ALSMinCLTCondition &&
 	    ALSMaxCLTCondition &&
+		ALSMaxEGTCondition &&
 	    ALSMaxThrottleIntentCondition &&
 	    ALSSwitchCondition &&
 		ALSTimerCondition;
