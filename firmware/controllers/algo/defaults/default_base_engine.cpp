@@ -268,6 +268,7 @@ void setDefaultBaseEngine() {
 
 	engineConfiguration->ALSMinRPM = 400;
 	engineConfiguration->ALSMaxRPM = 3200;
+	engineConfiguration->ALSHardCutDelay = 50;
 	engineConfiguration->ALSMaxDuration = 3;
 	engineConfiguration->ALSMaxCLT = 105;
 	engineConfiguration->ALSMaxEGT = 800;

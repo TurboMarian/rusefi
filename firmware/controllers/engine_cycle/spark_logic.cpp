@@ -632,10 +632,10 @@ void onTriggerEventSparkLogic(float rpm, efitick_t edgeTimestamp, float currentP
 #endif // EFI_LAUNCH_CONTROL
 
 #if EFI_ANTILAG_SYSTEM && EFI_LAUNCH_CONTROL
-
     if (engine->antilagController.isAntilagCondition) {
-    
+
         float throttleIntent = Sensor::getOrZero(SensorType::DriverThrottleIntent);
+
         float duty_raw = interpolate3d(
             config->ALSIgnSkipTable,
             config->alsIgnSkipLoadBins, throttleIntent,
@@ -643,17 +643,19 @@ void onTriggerEventSparkLogic(float rpm, efitick_t edgeTimestamp, float currentP
         );
 
         constexpr float ALS_IGN_SKIP_TABLE_SCALE = 1.0f;
+        float alsHardRatio = clampF(duty_raw * ALS_IGN_SKIP_TABLE_SCALE, 0.0f, 100.0f) / 100.0f;
 
-        float dutyPct = clampF(duty_raw * ALS_IGN_SKIP_TABLE_SCALE, 0.0f, 100.0f);
-        float alsHardRatio = dutyPct / 100.0f;
+        if (rpm >= engineConfiguration->ALSMaxRPM) {
+            alsHardRatio = 1.0f;
+        }
 
         engine->hardSparkLimiter.updateTargetSkipRatio(alsHardRatio, /*traction*/0.0f, /*other*/0.0f);
 
         if (engine->hardSparkLimiter.shouldSkip()) {
+            engine->ignitionState.luaIgnitionSkip = true;
             continue;
         }
     }
-
 #endif // EFI_ANTILAG_SYSTEM
 
 			scheduleSparkEvent(limitedSpark, event, rpm, dwellMs, dwellAngle, sparkAngle, edgeTimestamp, currentPhase, nextPhase);
