@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <msq xmlns="http://www.msefi.com/:msq">
     <page/>
-    <page number="0" size="22900">
+    <page number="0" size="22904">
         <constant name="accelEnrichmentMode">"MS Adder"</constant>
         <constant name="accelerometerCsPin">"NONE"</constant>
         <constant name="accelerometerCsPinMode">"default"</constant>
@@ -115,6 +115,7 @@
          0.0 0.0 0.0 0.0
          0.0 0.0 0.0 0.0
 </constant>
+        <constant digits="2" name="ALSHardCutDelay" units="">50.0</constant>
         <constant digits="2" name="ALSIdleAdd" units="%">0.0</constant>
         <constant cols="1" digits="0" name="alsIgnRetardLoadBins" rows="4" units="TPS">
          2.0
@@ -4954,7 +4955,7 @@ end</constant>
 </constant>
         <constant name="yesUnderstandLocking">"no"</constant>
     </page>
-    <versionInfo firmwareInfo="20251017" nPages="1" signature="rusEFI master.2025.11.08.f407-discovery.1003648940" version="5.0"/>
+    <versionInfo firmwareInfo="20251017" nPages="1" signature="rusEFI master.2025.11.08.f407-discovery.944321618" version="5.0"/>
     <bibliography author="rusEFI 20251017" writeDate="date"/>
     <settings/>
     <userComments/>
