@@ -115,7 +115,7 @@
          0.0 0.0 0.0 0.0
          0.0 0.0 0.0 0.0
 </constant>
-        <constant digits="2" name="ALSHardCutDelay" units="">50.0</constant>
+        <constant digits="2" name="ALSHardCutDelay" units="rpm">50.0</constant>
         <constant digits="2" name="ALSIdleAdd" units="%">0.0</constant>
         <constant cols="1" digits="0" name="alsIgnRetardLoadBins" rows="4" units="TPS">
          2.0
@@ -581,7 +581,7 @@
         <constant name="brakePedalPin">"NONE"</constant>
         <constant name="brakePedalPinMode">"PULLUP"</constant>
         <constant digits="0" name="byFirmwareVersion" units="index">2.0251019E7</constant>
-        <constant digits="0" name="calibrationBirthday" units="">2.0251108E7</constant>
+        <constant digits="0" name="calibrationBirthday" units="">2.025113E7</constant>
         <constant digits="0" name="camDecoder2jzPosition" units="angle">95.0</constant>
         <constant digits="0" name="camDecoder2jzPrecision" units="">40.0</constant>
         <constant name="camInputs1">"NONE"</constant>
@@ -4953,7 +4953,7 @@ end</constant>
 </constant>
         <constant name="yesUnderstandLocking">"no"</constant>
     </page>
-    <versionInfo firmwareInfo="20251017" nPages="1" signature="rusEFI master.2025.11.08.f407-discovery.944321618" version="5.0"/>
+    <versionInfo firmwareInfo="20251017" nPages="1" signature="rusEFI master.2025.11.30.f407-discovery.1354248775" version="5.0"/>
     <bibliography author="rusEFI 20251017" writeDate="date"/>
     <settings/>
     <userComments/>
