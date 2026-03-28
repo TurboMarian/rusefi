@@ -42,7 +42,7 @@ See [the changelog](firmware/CHANGELOG.md)
  * [Patreon](https://www.patreon.com/rusefi)
 
 # Cloning the repository
-`git clone https://github.com/rusefi/rusefi.git`
+`git clone git clone https://github.com/TurboMarian/rusefi.git`
 Important note - we now use submodules:
 
 `git submodule update --init`
