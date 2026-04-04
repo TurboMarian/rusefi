@@ -334,6 +334,74 @@ TEST(FuelMath, IdleVeTable) {
 	EXPECT_FLOAT_EQ(dut.getVe(1000, 50, false), 0.5f);
 }
 
+TEST(FuelMath, VeSwitchTable) {
+	EngineTestHelper eth(engine_type_e::TEST_ENGINE);
+
+	MockAirmass dut;
+
+	// Primary VE table returns 50%
+	EXPECT_CALL(dut.veTable, getValue(_, _)).WillRepeatedly(Return(50));
+
+	// Switch VE table returns 80%
+	setTable(config->veSwitchTable, 80);
+
+	config->veSwitchTableInput = Gpio::A0;
+	setMockState(Gpio::A0, true);
+
+	// Feature disabled -> primary table used even with pin configured and HIGH
+	engineConfiguration->enableVeSwitchTable = false;
+	EXPECT_NEAR(dut.getVe(1000, 50, false), 0.5f, EPS4D);
+
+	// Feature enabled, pin LOW -> primary table
+	engineConfiguration->enableVeSwitchTable = true;
+	setMockState(Gpio::A0, false);
+	EXPECT_NEAR(dut.getVe(1000, 50, false), 0.5f, EPS4D);
+
+	// Feature enabled, pin HIGH -> switch table
+	setMockState(Gpio::A0, true);
+	EXPECT_NEAR(dut.getVe(1000, 50, false), 0.8f, EPS4D);
+
+	// Feature enabled but no pin configured -> primary table
+	config->veSwitchTableInput = Gpio::Unassigned;
+	EXPECT_NEAR(dut.getVe(1000, 50, false), 0.5f, EPS4D);
+}
+
+TEST(FuelMath, VeSwitchTableBlend) {
+	EngineTestHelper eth(engine_type_e::TEST_ENGINE);
+
+	MockAirmass dut;
+
+	// Primary VE table returns 50%, switch table returns 80%
+	EXPECT_CALL(dut.veTable, getValue(_, _)).WillRepeatedly(Return(50));
+	setTable(config->veSwitchTable, 80);
+
+	engineConfiguration->enableVeSwitchTable = true;
+	config->veSwitchTableInput = Gpio::Unassigned; // no pin
+
+	// Configure blend: TPS controls blend, 0% TPS -> 0% blend, 100% TPS -> 100% blend
+	config->veSwitchBlendParameter = GPPWM_Tps;
+	setLinearCurve(config->veSwitchBlendBins, 0, 100, 1);
+	setLinearCurve(config->veSwitchBlendValues, 0, 100, 1);
+
+	// TPS = 0 -> 0% blend -> primary table (50%)
+	Sensor::setMockValue(SensorType::Tps1, 0);
+	EXPECT_NEAR(dut.getVe(1000, 50, false), 0.5f, EPS4D);
+
+	// TPS = 50 -> 50% blend -> midpoint between 50% and 80% = 65%
+	Sensor::setMockValue(SensorType::Tps1, 50);
+	EXPECT_NEAR(dut.getVe(1000, 50, false), 0.65f, EPS4D);
+
+	// TPS = 100 -> 100% blend -> fully switched (80%)
+	Sensor::setMockValue(SensorType::Tps1, 100);
+	EXPECT_NEAR(dut.getVe(1000, 50, false), 0.8f, EPS4D);
+
+	// Pin takes priority over blend when active
+	config->veSwitchTableInput = Gpio::A0;
+	setMockState(Gpio::A0, true);
+	Sensor::setMockValue(SensorType::Tps1, 0); // blend would give primary, but pin forces switch
+	EXPECT_NEAR(dut.getVe(1000, 50, false), 0.8f, EPS4D);
+}
+
 TEST(FuelMath, getCycleFuelMassTest) {
 	EngineTestHelper eth(engine_type_e::TEST_ENGINE);
 	setLinearCurve(config->crankingTpsCoef, /*from*/1, /*to*/8, 1);

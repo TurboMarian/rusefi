@@ -31,7 +31,7 @@ public class SensorCentralTest {
 
     @Test
     void setValueAndGetValueBySensorEnum() {
-        sensorCentral.setValue(2000.0, Sensor.RPMGauge);
+        sensorCentral.setValue(2000.0, Sensor.RPMGauge.getNativeName());
         assertEquals(2000.0, sensorCentral.getValue(Sensor.RPMGauge), 0.001);
     }
 
@@ -150,14 +150,14 @@ public class SensorCentralTest {
     }
 
     @Test
-    void listenerStillNotifiedWhenValueUnchanged() {
+    void listenerNotNotifiedWhenValueUnchanged() {
         AtomicInteger callCount = new AtomicInteger(0);
 
         sensorCentral.addListener("testSensor11", value -> callCount.incrementAndGet());
         sensorCentral.setValue(50.0, "testSensor11");
-        sensorCentral.setValue(50.0, "testSensor11");
+        sensorCentral.setValue(50.0, "testSensor11"); // same value — should not fire again
 
-        assertEquals(2, callCount.get());
+        assertEquals(1, callCount.get());
     }
 
     @Test

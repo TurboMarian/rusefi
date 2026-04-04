@@ -21,6 +21,42 @@ float AirmassVeModelBase::getVe(float rpm, float load, bool postState) const {
 	load = getVeLoadAxis(engineConfiguration->veOverrideMode, load);
 
 	percent_t ve = m_veTable->getValue(rpm, load);
+
+#if EFI_PROD_CODE || EFI_UNIT_TEST
+	bool switchTableActive = false;
+
+	if (engineConfiguration->enableVeSwitchTable) {
+		const bool pinActive = isBrainPinValid(config->veSwitchTableInput) &&
+			efiReadPin(config->veSwitchTableInput, config->veSwitchTableInputMode);
+
+		if (pinActive) {
+			// Hard switch: pin overrides everything, replace VE entirely
+			ve = interpolate3d(
+				config->veSwitchTable,
+				config->veSwitchLoadBins, load,
+				config->veSwitchRpmBins, rpm
+			);
+			switchTableActive = true;
+		} else {
+			auto result = calculateBlend(
+				config->veSwitchBlendParameter,
+				config->veSwitchBlendBins, config->veSwitchBlendValues,
+				config->veSwitchTable,
+				config->veSwitchLoadBins, load,
+				config->veSwitchRpmBins, rpm
+			);
+			if (result.Bias > 0) {
+				ve = interpolateClamped(0, ve, 100, result.Value, result.Bias);
+				switchTableActive = true;
+			}
+			if (postState) {
+				engine->outputChannels.veSwitchBlendParameter = result.BlendParameter;
+				engine->outputChannels.veSwitchBlendBias = result.Bias;
+			}
+		}
+	}
+#endif
+
 	float idleVeLoad = load;
 
 #if EFI_IDLE_CONTROL
@@ -70,6 +106,9 @@ float AirmassVeModelBase::getVe(float rpm, float load, bool postState) const {
 		engine->engineState.currentVe = ve;
 		engine->engineState.veTableYAxis = load;
 		engine->engineState.veTableIdleYAxis = idleVeLoad;
+#if EFI_PROD_CODE
+		engine->engineState.isVeSwitchTableActive = switchTableActive;
+#endif
 	}
 
 	return ve * PERCENT_DIV;
