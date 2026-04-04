@@ -5,6 +5,7 @@
  */
 
 #include "pch.h"
+#include "board_overrides.h"
 
 /* --- Injectors & Ignition --- */
 
@@ -17,8 +18,8 @@ static void setInjectorPins() {
 	engineConfiguration->injectionPins[3] = Gpio::G3;
 	engineConfiguration->injectionPins[4] = Gpio::G2;
 	engineConfiguration->injectionPins[5] = Gpio::D15;
-	engineConfiguration->injectionPins[6] = Gpio::D14;
-	engineConfiguration->injectionPins[7] = Gpio::D13;
+	engineConfiguration->injectionPins[6] = Gpio::Unassigned;
+	engineConfiguration->injectionPins[7] = Gpio::Unassigned;
 }
 
 static void setIgnitionPins() {
@@ -30,8 +31,8 @@ static void setIgnitionPins() {
 	engineConfiguration->ignitionPins[3] = Gpio::E12;
 	engineConfiguration->ignitionPins[4] = Gpio::E11;
 	engineConfiguration->ignitionPins[5] = Gpio::E10;
-	engineConfiguration->ignitionPins[6] = Gpio::E9;
-	engineConfiguration->ignitionPins[7] = Gpio::E8;
+	engineConfiguration->ignitionPins[6] = Gpio::Unassigned;
+	engineConfiguration->ignitionPins[7] = Gpio::Unassigned;
 }
 
 /* --- LEDs --- */
@@ -69,10 +70,10 @@ static void setStepperConfig() {
 /* --- Vbatt sensing --- */
 
 static void setupVbatt() {
-	engineConfiguration->analogInputDividerCoefficient = 1.6f;
-	engineConfiguration->vbattDividerCoeff = (6.34f + 1) / 1.0f;
+	engineConfiguration->analogInputDividerCoefficient = 1.59f;
 	engineConfiguration->vbattAdcChannel = EFI_ADC_0; // PA7
-	engineConfiguration->adcVcc = 3.3f;
+	engineConfiguration->adcVcc = 3.2f;
+	engineConfiguration->vbattDividerCoeff = 7.5;
 }
 
 /* --- SD Card --- */
@@ -114,7 +115,7 @@ static void setupDefaultSensorInputs() {
 
 /* --- Main override and default configuration --- */
 
-static void ApexBoard_ConfigOverrides() {
+static void customBoardConfigOverrides() {
 	setupVbatt();
 	setupSdCard();
 	setEtbConfig();
@@ -142,7 +143,7 @@ static void ApexBoard_ConfigOverrides() {
 	engineConfiguration->lps25BaroSensorSda = Gpio::C9;
 }
 
-static void ApexBoard_DefaultConfiguration() {
+static void customBoardDefaultConfiguration() {
 	setInjectorPins();
 	setIgnitionPins();
 	setupDefaultSensorInputs();
@@ -153,20 +154,24 @@ static void ApexBoard_DefaultConfiguration() {
 
 	engineConfiguration->canBaudRate  = B1MBPS;
 	engineConfiguration->can2BaudRate = B500KBPS;
-
-	// Lua stub
-	strncpy(config->luaScript, R"(
-
-	function onTick()
-
-	end
-
-	)", efi::size(config->luaScript));
 }
 
-/* --- Entry point expected by firmware --- */
+// Register the above board-specific configuration
+void setup_custom_board_overrides() {
+	custom_board_DefaultConfiguration = customBoardDefaultConfiguration;
+	custom_board_ConfigOverrides = customBoardConfigOverrides;
+}
 
-void setup_custom_board_overrides(void) {
-	ApexBoard_ConfigOverrides();
-	ApexBoard_DefaultConfiguration();
+#include "connectors/generated_outputs.h"
+
+int getBoardMetaOutputsCount() {
+	return efi::size(GENERATED_OUTPUTS);
+}
+
+int getBoardMetaLowSideOutputsCount() {
+	return getBoardMetaOutputsCount();
+}
+
+Gpio* getBoardMetaOutputs() {
+	return GENERATED_OUTPUTS;
 }
