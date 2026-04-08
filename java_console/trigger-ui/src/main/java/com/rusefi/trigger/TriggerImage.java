@@ -21,6 +21,7 @@ import java.util.List;
 /**
  * This utility produces images of trigger signals supported by rusEFI
  * <p>
+ *  rusefi_documentation\Images\triggers is the ultimate destination for these files
  * 06/23/15
  * Andrey Belomutskiy, (c) 2013-2020
  */
@@ -157,7 +158,7 @@ public class TriggerImage {
             TriggerWheelInfo.readWheels(workingFolder, wheelInfo -> onWheel(triggerPanel, topPanel, content, wheelInfo));
         });
         Thread.sleep(1000L * sleepAtEnd);
-        System.exit(-1);
+        System.exit(0);
     }
 
     private static void onWheel(TriggerPanel triggerPanel, JPanel topPanel, JPanel content, TriggerWheelInfo triggerWheelInfo) {

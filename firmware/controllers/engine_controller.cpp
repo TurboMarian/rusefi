@@ -570,8 +570,8 @@ bool validateConfigOnStartUpOrBurn() {
 		ensureArrayIsAscending("VE load", config->veLoadBins);
 		ensureArrayIsAscending("VE RPM", config->veRpmBins);
 
-  		ensureArrayIsAscending("Switched VE load", config->veSwitchLoadBins);
-  		ensureArrayIsAscending("Switched VE RPM", config->veSwitchRpmBins);
+  		ensureArrayIsAscending("Second VE load", config->secondVeLoadBins);
+  		ensureArrayIsAscending("Second VE RPM", config->secondVeRpmBins);
 
 		ensureArrayIsAscending("Lambda/AFR load", config->lambdaLoadBins);
 		ensureArrayIsAscending("Lambda/AFR RPM", config->lambdaRpmBins);
@@ -611,6 +611,9 @@ bool validateConfigOnStartUpOrBurn() {
 
 		ensureArrayIsAscending("Ignition load", config->ignitionLoadBins);
 		ensureArrayIsAscending("Ignition RPM", config->ignitionRpmBins);
+
+		ensureArrayIsAscending("Second Ignition load", config->secondIgnitionLoadBins);
+		ensureArrayIsAscending("Second Ignition RPM", config->secondIgnitionRpmBins);
 		ensureArrayIsAscendingOrDefault("Ign Trim Rpm", config->ignTrimRpmBins);
    		ensureArrayIsAscendingOrDefault("Ign Trim Load", config->ignTrimLoadBins);
 

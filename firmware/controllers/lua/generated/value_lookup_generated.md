@@ -565,9 +565,6 @@ AEM X-Series or rusEFI Wideband
 ### useAbsolutePressureForLagTime
 
 
-### enableVeSwitchTable
-Enables the switchable VE table
-
 ### verboseCanBaseAddress
 
 
@@ -1010,10 +1007,10 @@ set warningPeriod X
 Pedal position to realize that we need to reduce torque when the trigger pin is triggered
 
 ### referenceTorqueForGenerator
-null
+Reference Torque value
 
 ### referenceMapForGenerator
-null
+kPa/psi value at which Reference Torque is archived
 
 ### referenceVeForGenerator
 null
