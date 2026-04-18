@@ -514,6 +514,8 @@ static LOG_FIELD_CONSTNESS_SPECIFIER_STORAGE MLG::Entries::Field fields[] = {
 	{engine->module<KnockController>()->m_knockFrequencyStart, "Knock: Start Freq", "Hz", 0},
 	{engine->module<KnockController>()->m_knockFrequencyStep, "Knock: Step Freq", "Hz", 0},
 	{engine->module<KnockController>()->m_knockFuelTrimMultiplier, "Knock: Fuel trim when knock", "multiplier", 0},
+	{*engine->module<KnockController>(), 108, 0, "Knock: Detected recently", ""},
+	{*engine->module<KnockController>(), 108, 1, "Knock: Retard active", ""},
 	{*engine->module<PrimeController>(), 0, 0, "IsFuelPriming", ""},
 	{*engine->module<FanControl1>(), 0, 0, "fan1cranking", ""},
 	{*engine->module<FanControl1>(), 0, 1, "fan1notRunning", ""},
