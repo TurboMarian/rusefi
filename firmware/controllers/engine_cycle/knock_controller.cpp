@@ -58,7 +58,7 @@ int getCylinderKnockBank(uint8_t cylinderNumber) {
 	 *    - Calculates fuel trim enrichment based on 'knockFuelTrimAggression'.
 	 *    - Clamps adjustments to configured maximums.
 	 */
-void KnockControllerBase::onKnockSenseCompleted(uint8_t cylinderNumber, float dbv, efitick_t lastKnockTime) {
+bool KnockControllerBase::onKnockSenseCompleted(uint8_t cylinderNumber, float dbv, efitick_t lastKnockTime) {
 	bool isKnock = dbv > m_knockThreshold;
 
 	// Per-cylinder peak detector
@@ -99,6 +99,8 @@ void KnockControllerBase::onKnockSenseCompleted(uint8_t cylinderNumber, float db
 			m_knockFuelTrimMultiplier = clampF(0.f, newFuelTrim, maximumFuelTrim);
 		}
 	}
+
+	return isKnock;
 }
 
 float KnockControllerBase::getKnockRetard() const {
