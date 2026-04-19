@@ -123,9 +123,6 @@ float KnockControllerBase::getFuelTrimMultiplier() const {
 	 *    based on configured 'reapplyRate' parameters.
 	 */
 void KnockControllerBase::onFastCallback() {
-	m_knockThreshold = getKnockThreshold();
-	m_maximumRetard = getMaximumRetard();
-
 	constexpr auto callbackPeriodSeconds = FAST_CALLBACK_PERIOD_MS / 1000.0f;
 
 	auto applyRetardAmount = engineConfiguration->knockRetardReapplyRate * callbackPeriodSeconds;
@@ -165,6 +162,9 @@ void KnockControllerBase::onFastCallback() {
 			m_knockFuelTrimMultiplier = newTrim;
 		}
 	}
+
+	m_knockThreshold = getKnockThreshold();
+	m_maximumRetard = getMaximumRetard();
 }
 
 float KnockController::getKnockThreshold() const {
