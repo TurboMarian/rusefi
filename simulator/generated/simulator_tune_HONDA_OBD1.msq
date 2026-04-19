@@ -2485,19 +2485,19 @@
         <constant digits="1" name="knockFuelTrimReapplyRate" units="1%/s">0.0</constant>
         <constant cols="1" digits="0" name="knockGainLoadBins" rows="6" units="">
          0
-         0
-         0
-         0
-         0
-         0
+         20
+         40
+         60
+         80
+         100
 </constant>
         <constant cols="1" digits="0" name="knockGainRpmBins" rows="6" units="RPM">
-         0
-         0
-         0
-         0
-         0
-         0
+         700
+         800
+         2200
+         3600
+         5000
+         7000
 </constant>
         <constant cols="6" digits="0" name="knockGains10_table" rows="6" units="dB">
          0 0 0 0 0 0
