@@ -18,9 +18,16 @@ import com.rusefi.ui.engine.EngineSnifferPanel;
 import com.rusefi.ui.lua.LuaScriptPanel;
 import com.rusefi.ui.util.JustOneInstance;
 import com.rusefi.ui.widgets.ConnectionStatusIcon;
+import com.rusefi.ui.wizard.WizardCatalog;
+import com.rusefi.ui.wizard.WizardContainer;
+import com.rusefi.ui.wizard.WizardStep;
+import com.rusefi.ui.wizard.WizardStepDescriptor;
+import com.rusefi.io.ConnectionStatusLogic;
+import com.rusefi.io.ConnectionStatusValue;
 import com.rusefi.core.ui.AutoupdateUtil;
 import com.rusefi.util.LazyFile;
 import com.rusefi.util.LazyFileImpl;
+import org.jetbrains.annotations.NotNull;
 
 
 import javax.swing.*;
@@ -76,8 +83,52 @@ public class ConsoleUI {
         ConnectionStatusIcon connectionStatus = new ConnectionStatusIcon(linkManager);
 
         tabbedPane = new TabbedPanel(uiContext);
-        tabbedPane.setCornerComponent(connectionStatus);
         this.port = port;
+
+        // Wizard container and CardLayout for switching between console and wizard modes
+        JPanel rootPanel = new JPanel(new CardLayout());
+        rootPanel.add(tabbedPane.getContent(), "console");
+
+        WizardContainer wizardContainer = new WizardContainer(uiContext);
+        rootPanel.add(wizardContainer, "wizard");
+
+        CardLayout rootCardLayout = (CardLayout) rootPanel.getLayout();
+
+        JButton launchWizardButton = getLaunchWizardButton(rootPanel, wizardContainer, rootCardLayout);
+
+        wizardContainer.setOnWizardExit(() -> rootCardLayout.show(rootPanel, "console"));
+
+        // On ECU connect, scan the wizard catalog for applicable standalone steps that need attention
+        // (e.g. empty VIN) and auto-launch the first one. Fires on every reconnect; once the user
+        // saves the value, subsequent connects skip this because needsAttention returns false.
+        ConnectionStatusLogic.INSTANCE.addListener(isConnected -> {
+            if (!isConnected) return;
+            SwingUtilities.invokeLater(() -> {
+                if (!ConnectionStatusLogic.INSTANCE.isConnected()) return;
+                if (uiContext.getBinaryProtocol() == null) return;
+                if (uiContext.getBinaryProtocol().getControllerConfiguration() == null) return;
+                // Don't stomp on an already-visible wizard
+                if (wizardContainer.isShowing()) return;
+
+                for (WizardStepDescriptor d : WizardCatalog.standaloneAutoLaunch()) {
+                    if (!d.applicable.test(uiContext)) continue;
+                    if (d.needsAttention == null || !d.needsAttention.test(uiContext)) continue;
+                    WizardStep step = d.factory.apply(uiContext);
+                    wizardContainer.startSingleStep(step);
+                    rootCardLayout.show(rootPanel, "wizard");
+                    return;
+                }
+            });
+        });
+
+        JPanel cornerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+        cornerPanel.setOpaque(false);
+        cornerPanel.add(connectionStatus);
+        cornerPanel.add(launchWizardButton);
+        tabbedPane.setCornerComponent(cornerPanel);
+
+        // ---------------
+
         MainFrame mainFrame = new MainFrame(this, tabbedPane);
         JFrame frame = mainFrame.getFrame().getFrame();
         setFrameIcon(frame);
@@ -181,7 +232,22 @@ console live data tab is broken #8402
         AutoupdateUtil.setAppIcon(mainFrame.getFrame().getFrame());
         log.info("showFrame");
 
-        mainFrame.getFrame().showFrame(tabbedPane.getContent());
+        mainFrame.getFrame().showFrame(rootPanel);
+    }
+
+    private @NotNull JButton getLaunchWizardButton(JPanel rootPanel, WizardContainer wizardContainer, CardLayout rootCardLayout) {
+        JButton launchWizardButton = new JButton("Launch Wizard");
+        launchWizardButton.addActionListener(e -> {
+            if (ConnectionStatusLogic.INSTANCE.getValue() != ConnectionStatusValue.CONNECTED) {
+                JOptionPane.showMessageDialog(rootPanel,
+                    "Please connect to an ECU before launching the wizard.",
+                    "Not Connected", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            wizardContainer.startWizard();
+            rootCardLayout.show(rootPanel, "wizard");
+        });
+        return launchWizardButton;
     }
 
     public String getPort() {

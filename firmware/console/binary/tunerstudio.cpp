@@ -10,7 +10,7 @@
  *
  * Tuner Studio has a really simple protocol, a minimal implementation
  * capable of displaying current engine state on the gauges would
- * require only two commands: queryCommand and ochGetCommand
+ * require only two commands: queryCommand and ochGetCommand (output channels get)
  *
  * queryCommand:
  * 		Communication initialization command. TunerStudio sends a single byte H
@@ -27,6 +27,20 @@
  * tuner studio, three more commands should be implemented:
  *
  * See also https://www.efianalytics.com/TunerStudio/docs/EFI%20Analytics%20ECU%20Definition%20files.pdf
+ *
+ *
+ * Slightly longer explanation:
+ *
+ * we start by one or two commands to establish communication and get controller signature
+ * controller signature is a key to identify proper .ini metadata file
+ * once connection is established and .ini is available
+ * due to packet size limitation, large range operations are broken into multiple 'chunks' meaning we ready from specific offset with specific size around 1-2Kb
+ * we have two kinds of 'read' commands
+ * 'get output channels' to read gauges (dynamic, read only access)
+ * 'read chunks' meaning read of ECU persistent calibration which is organized as a few 'pages' limited to 64K
+ * tuning software also uses 'write chunks' to write calibration data, followed by 'burn' to apply all written chunks. Like 'commit'
+ *
+ * other commands are less important like 'get CRC32' to validate data integrity between ECU and local software snapshot
  *
  *
  * @date Oct 22, 2013
@@ -69,6 +83,7 @@
 
 #include "main_trigger_callback.h"
 #include "flash_main.h"
+#include "extra_flash_pages.h"
 
 #include "tunerstudio_io.h"
 #include "malfunction_central.h"
@@ -192,6 +207,8 @@ static uint8_t* getWorkingPageAddr(TsChannelBase* tsChannel, size_t page, size_t
 	case TS_PAGE_LTFT_TRIMS:
 		return (uint8_t *)ltftGetTsPage() + offset;
 #endif
+	case TS_PAGE_SECOND_TABLES:
+		return static_cast<uint8_t*>(getExtraPageAddr(EFI_SECOND_TABLES_RECORD_ID)) + offset;
 	default:
 		tunerStudioError(tsChannel, "ERROR: page address out of range");
 		return nullptr;
@@ -214,6 +231,8 @@ static constexpr size_t getTunerStudioPageSize(size_t page) {
 	case TS_PAGE_LTFT_TRIMS:
 		return ltftGetTsPageSize();
 #endif
+	case TS_PAGE_SECOND_TABLES:
+		return getExtraPageSize(EFI_SECOND_TABLES_RECORD_ID);
 	default:
 		return 0;
 	}
@@ -494,6 +513,8 @@ static void handleBurnCommand(TsChannelBase* tsChannel, uint16_t page) {
 		efiPrintf("Burned in %.1fms", t.getElapsedSeconds() * 1e3);
 	} else if (page == TS_PAGE_SCATTER_OFFSETS) {
 		/* do nothing */
+	} else if (page == TS_PAGE_SECOND_TABLES) {
+		burnExtraFlashPage(EFI_SECOND_TABLES_RECORD_ID);
 	} else {
 		sendErrorCode(tsChannel, TS_RESPONSE_OUT_OF_RANGE, "ERROR: Burn invalid page");
 		return;
@@ -1085,9 +1106,19 @@ static char tsErrorBuff[80];
 #endif // EFI_PROD_CODE || EFI_SIMULATOR
 
 bool isTuningVeNow() {
-  int tuningDetector = engineConfiguration->isTuningDetectorEnabled ? 0 : 20;
+	// When tuning detection is enabled, suspend STFT/LTFT for 20 s after each VE table write.
+	const int tuningDetector = engineConfiguration->isTuningDetectorEnabled ? 20 : 0;
 	return !calibrationsVeWriteTimer.hasElapsedSec(tuningDetector);
 }
+
+#if EFI_UNIT_TEST
+// Reset the VE-write timer to its initial "always elapsed" state so that tests do not
+// leak state across test cases (EngineTestHelper resets the mock clock to 0 in its
+// constructor, which would make a timer reset at T=0 appear freshly reset again).
+void resetCalibrationTimerForTest() {
+	calibrationsVeWriteTimer.init();
+}
+#endif
 
 void startTunerStudioConnectivity() {
 	// Assert tune & output channel struct sizes

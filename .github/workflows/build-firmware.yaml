@@ -193,10 +193,7 @@ jobs:
       run: |
         misc/git_scripts/common_submodule_init.sh
 
-    - uses: actions/setup-java@v5
-      with:
-        distribution: 'zulu'
-        java-version: '17'
+    - uses: ./.github/actions/setup-java
 
     - name: Install multilib, mingw, sshpass and mtools
       run: |
@@ -219,7 +216,7 @@ jobs:
 #
       # TODO: address `Acquire GCC` version copy paste, maybe a tiny action to acquire specific version?
     - name: Acquire Arm GNU Toolchain (arm-none-eabi-gcc)
-      uses: carlosperate/arm-none-eabi-gcc-action@v1.12.1
+      uses: carlosperate/arm-none-eabi-gcc-action@v1.12.3
       with:
         release: '14.2.Rel1'
 

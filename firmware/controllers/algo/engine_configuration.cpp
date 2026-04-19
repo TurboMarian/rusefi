@@ -191,7 +191,6 @@ void setConstantDwell(floatms_t dwellMs) {
 void setFuelTablesLoadBin(float minValue, float maxValue) {
 	setLinearCurve(config->injPhaseLoadBins, minValue, maxValue, 1);
 	setLinearCurve(config->veLoadBins, minValue, maxValue, 1);
-	setLinearCurve(config->secondVeLoadBins, minValue, maxValue, 1);
 	setLinearCurve(config->lambdaLoadBins, minValue, maxValue, 1);
 }
 
@@ -738,9 +737,23 @@ void setBoardConfigOverrides() {
   // time to force migration to custom_board_ConfigOverrides
 }
 
-PUBLIC_API_WEAK int hackHellenBoardId(int detectedId) { return detectedId; }
+#include "board_overrides.h"
 
-PUBLIC_API_WEAK void onBoardStandBy() { }
+std::optional<setup_custom_hack_hellen_board_id_type> custom_board_hackHellenBoardId;
+std::optional<setup_custom_on_board_standby_type> custom_board_onBoardStandBy;
+
+int hackHellenBoardId(int detectedId) {
+	if (custom_board_hackHellenBoardId.has_value()) {
+		return custom_board_hackHellenBoardId.value()(detectedId);
+	}
+	return detectedId;
+}
+
+void onBoardStandBy() {
+	if (custom_board_onBoardStandBy.has_value()) {
+		custom_board_onBoardStandBy.value()();
+	}
+}
 
 PUBLIC_API_WEAK_SOMETHING_WEIRD int getBoardMetaOutputsCount() { return 0; }
 // default implementation: treat all outputs as low side

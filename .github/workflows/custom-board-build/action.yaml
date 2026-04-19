@@ -212,10 +212,7 @@ runs:
       with:
         release: '14.2.Rel1'
 
-    - uses: actions/setup-java@v5
-      with:
-        distribution: 'zulu'
-        java-version: '17'
+    - uses: rusefi/rusefi/.github/actions/setup-java@master
 
     - name: Test Compiler
       shell: bash
@@ -383,6 +380,8 @@ runs:
       if: ${{ inputs.push == 'true' }}
       shell: bash
       run: |
+        : generated pages live here
+        git add "${{inputs.rusefi_dir}}/firmware/${META_OUTPUT_ROOT_FOLDER}/controllers/generated/*.h"
         : Add Config to Commit
         ${{inputs.rusefi_dir}}/.github/workflows/bin/smart-git-add.sh "${{inputs.rusefi_dir}}/firmware/${META_OUTPUT_ROOT_FOLDER}*msq" 6
         ${{inputs.rusefi_dir}}/.github/workflows/bin/smart-git-add.sh "${{inputs.rusefi_dir}}/firmware/${META_OUTPUT_ROOT_FOLDER}/**/*.h" 4

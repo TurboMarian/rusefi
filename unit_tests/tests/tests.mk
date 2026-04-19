@@ -209,6 +209,7 @@ TESTS_SRC_CPP = \
 	tests/controllers/algo/test_closed_loop_idle.cpp \
 	tests/controllers/modules/test_example_module.cpp \
 	tests/controllers/test_flash.cpp \
+	tests/controllers/test_second_tables.cpp \
 	tests/controllers/modules/vvl_controller/vvl_controller_rpm_condition.cpp \
 	tests/controllers/modules/vvl_controller/vvl_controller_clt_condition.cpp \
 	tests/controllers/modules/vvl_controller/vvl_controller_tps_condition.cpp \
@@ -216,4 +217,5 @@ TESTS_SRC_CPP = \
 	tests/controllers/modules/vvl_controller/vvl_controller_afr_condition.cpp \
 	tests/controllers/modules/test_configuration_wizard.cpp \
 	tests/controllers/can/dash/test_can_bmw_e46.cpp \
-	tests/controllers/algo/rotational_idle/test_rotational_idle.cpp
+	tests/controllers/algo/rotational_idle/test_rotational_idle.cpp \
+	tests/bean/test_bean_logic.cpp

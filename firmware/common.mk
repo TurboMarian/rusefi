@@ -1,3 +1,8 @@
+#
+# this file is shared between embedded, simulator and unit_tests - BUT NOT BOOTLOADER?
+# see rusefi_rules.mk which is more shared
+#
+
 include $(PROJECT_DIR)/init/init.mk
 include $(PROJECT_DIR)/util/util.mk
 include $(PROJECT_DIR)/config/engines/engines.mk
@@ -56,6 +61,12 @@ ifneq ("$(wildcard $(BOARD_DIR)/board_unit_tests.mk)","")
 	LIVE_DATA_GENERATED_DIRS := $(BOARD_DIR)/generated/live_data_generated
 endif
 LIVE_DATA_GENERATED_DIRS += $(PROJECT_DIR)/live_data_generated
+
+ifeq ($(SHORT_BOARD_NAME),)
+  SHORT_BOARD_NAME = f407-discovery
+endif
+
+# Board-specific generated header overrides are now in rusefi_rules.mk (shared by all configurations).
 
 ALLINC += \
 	$(FW_CONFIG_DIR) \
