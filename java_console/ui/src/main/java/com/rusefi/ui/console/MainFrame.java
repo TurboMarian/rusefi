@@ -2,6 +2,7 @@ package com.rusefi.ui.console;
 
 import com.devexperts.logging.Logging;
 import com.rusefi.*;
+import com.rusefi.autoupdate.Autoupdate;
 import com.rusefi.binaryprotocol.BinaryProtocol;
 import com.rusefi.config.generated.Integration;
 import com.rusefi.core.EngineState;
@@ -11,11 +12,14 @@ import com.rusefi.io.tcp.BinaryProtocolServer;
 import com.rusefi.maintenance.VersionChecker;
 import com.rusefi.core.preferences.storage.Node;
 import com.rusefi.core.ui.FrameHelper;
+import com.rusefi.ui.basic.FirmwareUpdateTab;
+import com.rusefi.ui.basic.LoadTuneHelper;
 import com.rusefi.util.ExitUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.net.URI;
 import java.util.Objects;
 import java.time.LocalDateTime;
@@ -26,6 +30,9 @@ import static com.devexperts.logging.Logging.getLogging;
 import static com.rusefi.core.preferences.storage.PersistentConfiguration.getConfig;
 import static com.rusefi.core.net.ConnectionAndMeta.RUSEFI_WIKI_DOWNLOAD_PAGE;
 
+/**
+ * @see ConsoleUI
+ */
 public class MainFrame {
     private static final Logging log = getLogging(Launcher.class);
 
@@ -62,6 +69,51 @@ public class MainFrame {
         this.consoleUI = Objects.requireNonNull(consoleUI);
         this.tabbedPane = tabbedPane;
         listener = ConnectionStatusLogic.Listener.VOID;
+
+        createMenuBar();
+    }
+
+    private void createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu fileMenu = new JMenu("File");
+        fileMenu.setMnemonic(KeyEvent.VK_F);
+
+        JMenuItem loadTuneItem = new JMenuItem(LoadTuneHelper.LOAD_TUNE_TEXT);
+        loadTuneItem.setMnemonic(KeyEvent.VK_L);
+        loadTuneItem.setEnabled(false);
+        fileMenu.add(loadTuneItem);
+
+        JMenuItem saveTuneItem = new JMenuItem(LoadTuneHelper.SAVE_TUNE_TEXT);
+        saveTuneItem.setMnemonic(KeyEvent.VK_S);
+        saveTuneItem.setEnabled(false);
+        fileMenu.add(saveTuneItem);
+
+        fileMenu.addSeparator();
+
+        JMenuItem exitItem = new JMenuItem("Exit");
+        exitItem.setMnemonic(KeyEvent.VK_X);
+        exitItem.addActionListener(e -> {
+            // This triggers the same cleanup logic as closing the window
+            frame.getFrame().dispose();
+        });
+        fileMenu.add(exitItem);
+
+        menuBar.add(fileMenu);
+
+        JMenu actionsMenu = new JMenu("Actions");
+        actionsMenu.setMnemonic(KeyEvent.VK_A);
+
+        JMenuItem updateSoftwareItem = new JMenuItem("Update Software");
+        saveTuneItem.setEnabled(false);
+        actionsMenu.add(updateSoftwareItem);
+
+        JMenuItem updateEcuItem = new JMenuItem("Update ECU");
+        saveTuneItem.setEnabled(false);
+        actionsMenu.add(updateEcuItem);
+
+        menuBar.add(actionsMenu);
+
+        frame.getFrame().setJMenuBar(menuBar);
     }
 
     private void windowOpenedHandler() {
@@ -81,32 +133,44 @@ public class MainFrame {
         }));
 
         final LinkManager linkManager = consoleUI.uiContext.getLinkManager();
-        linkManager.getConnector().connectAndReadConfiguration(new BinaryProtocol.Arguments(true), new ConnectionStatusLogic.Listener() {
-            @Override
-            public void onConnectionStatus(boolean isConnected) {}
+        BinaryProtocol existingBp = linkManager.getBinaryProtocol();
+        boolean alreadyConnected = existingBp != null && existingBp.getControllerConfiguration() != null;
+        if (alreadyConnected) {
+            // Splash already did connectAndReadConfiguration. Running it again would re-open the
+            // already-open serial port and fail. Run only the post-connect setup here.
+            ConnectionWatchdog.init(linkManager);
+            SwingUtilities.invokeLater(() -> {
+                tabbedPane.logsManager.showContent();
+                new BinaryProtocolServer().start(linkManager);
+            });
+        } else {
+            linkManager.getConnector().connectAndReadConfiguration(new BinaryProtocol.Arguments(true), new ConnectionStatusLogic.Listener() {
+                @Override
+                public void onConnectionStatus(boolean isConnected) {}
 
-            @Override
-            public void onConnectionFailed(String errorMessage) {
-                log.error("onConnectionFailed " + errorMessage);
-                SwingUtilities.invokeLater(() -> showConnectionFailedDialog(errorMessage));
-            }
+                @Override
+                public void onConnectionFailed(String errorMessage) {
+                    log.error("onConnectionFailed " + errorMessage);
+                    SwingUtilities.invokeLater(() -> showConnectionFailedDialog(errorMessage));
+                }
 
-            @Override
-            public void onConnectionEstablished() {
-                ConnectionWatchdog.init(linkManager);
+                @Override
+                public void onConnectionEstablished() {
+                    ConnectionWatchdog.init(linkManager);
 
-                SwingUtilities.invokeLater(() -> {
+                    SwingUtilities.invokeLater(() -> {
 //                    tabbedPane.settingsTab.showContent(linkManager);
-                    tabbedPane.logsManager.showContent();
-                    /**
-                     * todo: we are definitely not handling reconnect properly, no code to shut down old instance of server
-                     * before launching new instance
-                     */
-                    new BinaryProtocolServer().start(linkManager);
-                });
+                        tabbedPane.logsManager.showContent();
+                        /**
+                         * todo: we are definitely not handling reconnect properly, no code to shut down old instance of server
+                         * before launching new instance
+                         */
+                        new BinaryProtocolServer().start(linkManager);
+                    });
 
-            }
-        });
+                }
+            });
+        }
 
         consoleUI.uiContext.getLinkManager().getEngineState().registerStringValueAction(Integration.PROTOCOL_VERSION_TAG, new EngineState.ValueCallback<String>() {
             @Override

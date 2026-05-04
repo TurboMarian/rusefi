@@ -39,6 +39,15 @@ public class WizardContainer extends JPanel {
     private int selectedCylinders = 4; // default, updated by step 0
 
     public WizardContainer(UIContext uiContext) {
+        this(uiContext, false);
+    }
+
+    /**
+     * @param compact when {@code true}, skips the oversized header fonts/buttons so the wizard
+     *                fits inside a modest host frame (e.g. the splash screen). Use {@code false}
+     *                for the fullscreen-console experience.
+     */
+    public WizardContainer(UIContext uiContext, boolean compact) {
         super(new BorderLayout());
         this.uiContext = uiContext;
 
@@ -46,11 +55,11 @@ public class WizardContainer extends JPanel {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-        scaleComponent(stepLabel, 1.5f);
+        if (!compact) scaleComponent(stepLabel, 1.5f);
         headerPanel.add(stepLabel, BorderLayout.CENTER);
 
         JButton cancelButton = new JButton("Exit Wizard");
-        scaleComponent(cancelButton, 1.5f);
+        if (!compact) scaleComponent(cancelButton, 1.5f);
         cancelButton.addActionListener(e -> exitWizard());
         headerPanel.add(cancelButton, BorderLayout.EAST);
 
@@ -60,6 +69,7 @@ public class WizardContainer extends JPanel {
 
         // Debug panel at the bottom showing wizard flag states
         buildDebugPanel();
+        debugPanel.setVisible(false);
         add(debugPanel, BorderLayout.SOUTH);
     }
 
@@ -161,7 +171,8 @@ public class WizardContainer extends JPanel {
         currentStepIndex = 0;
         totalSteps = TOTAL_STEPS;
         onAllStepsComplete = this::showCompletionCard;
-        debugPanel.setVisible(true);
+        // uncomment to show the debug panel; we need it to reset the flags on local env
+        // debugPanel.setVisible(true);
         steps.clear();
         stepContentPanel.removeAll();
 
@@ -289,6 +300,24 @@ public class WizardContainer extends JPanel {
         return TOTAL_STEPS;
     }
 
+    /** Total flagged steps applicable to this board — drives the "of N" denominator shown to the user. */
+    private int applicableFlaggedCount() {
+        int count = 0;
+        for (WizardStepDescriptor d : FLAGGED) {
+            if (d.applicable.test(uiContext)) count++;
+        }
+        return count;
+    }
+
+    /** 1-based position of flagged step {@code index} among applicable steps — drives the "Step N" numerator. */
+    private int applicableCountUpTo(int index) {
+        int count = 0;
+        for (int i = 0; i <= index && i < FLAGGED.size(); i++) {
+            if (FLAGGED.get(i).applicable.test(uiContext)) count++;
+        }
+        return count;
+    }
+
     /**
      * A flagged step is "satisfied" (skipped by the wizard flow) when:
      * - it's not applicable to this board, OR
@@ -406,9 +435,13 @@ public class WizardContainer extends JPanel {
         WizardStep step = steps.get(index);
         String title = step != null ? step.getTitle() : "...";
         if (totalSteps == 1) {
-            stepLabel.setText(title);
+            // Single-step mode (e.g. VIN auto-launch): the panel renders its own title,
+            // so hide the header label to avoid duplicating it.
+            stepLabel.setText("");
+            stepLabel.setVisible(false);
         } else {
-            stepLabel.setText("Step " + (index + 1) + " of " + totalSteps + ": " + title);
+            stepLabel.setVisible(true);
+            stepLabel.setText("Step " + applicableCountUpTo(index) + " of " + applicableFlaggedCount() + ": " + title);
         }
         CardLayout cl = (CardLayout) stepContentPanel.getLayout();
         cl.show(stepContentPanel, "step" + index);
