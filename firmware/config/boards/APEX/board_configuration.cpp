@@ -152,8 +152,8 @@ static void customBoardDefaultConfiguration() {
 	engineConfiguration->canBaudRate  = B1MBPS;
 	engineConfiguration->can2BaudRate = B500KBPS;
 
-  engineConfiguration->analogInputDividerCoefficient = 1.59f;
-  engineConfiguration->adcVcc = 3.2f;
+    engineConfiguration->analogInputDividerCoefficient = 1.59f;
+    engineConfiguration->adcVcc = 3.2f;
 	engineConfiguration->vbattDividerCoeff = 7.5;
 }
 
