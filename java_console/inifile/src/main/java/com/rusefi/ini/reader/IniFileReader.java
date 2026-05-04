@@ -40,7 +40,11 @@ public class IniFileReader {
                 allCurves,
                 menuDialogString,
                 menus,
-                frontPage);
+                frontPage,
+                controllerCommands,
+                veAnalyzeMaps,
+                lambdaTargetTables,
+                veAnalyzeFilters);
     }
     private static final Logging log = Logging.getLogging(IniFileReader.class);
     public static final String RUSEFI_INI_PREFIX = "rusefi";
@@ -99,6 +103,7 @@ public class IniFileReader {
 
     private boolean isTableEditorSection = false;
     private boolean isMenuSection = false;
+    private boolean isControllerCommandsSection = false;
     private final List<MenuModel> menus = new ArrayList<>();
     private MenuModel currentMenu;
     private GroupMenuModel currentGroup;
@@ -111,6 +116,13 @@ public class IniFileReader {
     private final FrontPageModel frontPage = new FrontPageModel();
     private final Map<String, CurveModel> allCurves = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private final CurveBuilder curveBuilder = new CurveBuilder();
+
+    private final Map<String, String> controllerCommands = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+    private boolean isVeAnalyzeSection = false;
+    private final List<VeAnalyzeMap> veAnalyzeMaps = new ArrayList<>();
+    private final List<String> lambdaTargetTables = new ArrayList<>();
+    private final List<VeAnalyzeFilter> veAnalyzeFilters = new ArrayList<>();
 
     private boolean isInSettingContextHelp = false;
     private boolean isInsidePageDefinition;
@@ -234,7 +246,9 @@ public class IniFileReader {
                 isTableEditorSection = first.equalsIgnoreCase("[TableEditor]");
                 isCurveEditorSection = first.equalsIgnoreCase("[CurveEditor]");
                 isMenuSection = first.equalsIgnoreCase("[Menu]");
+                isControllerCommandsSection = first.equalsIgnoreCase("[ControllerCommands]");
                 isFrontPageSection = first.equalsIgnoreCase("[FrontPage]");
+                isVeAnalyzeSection = first.equalsIgnoreCase("[VeAnalyze]");
 
                 if (wasGaugeSection && !isGaugeConfigurationsSection) {
                     finishGaugeCategory();
@@ -277,6 +291,14 @@ public class IniFileReader {
                 return;
             } else if (isFrontPageSection) {
                 handleFrontPage(list);
+                return;
+            } else if (isVeAnalyzeSection) {
+                handleVeAnalyze(list);
+                return;
+            } else if (isControllerCommandsSection) {
+                if (list.size() >= 2) {
+                    controllerCommands.put(list.get(0), list.get(1));
+                }
                 return;
             }
 
@@ -854,6 +876,39 @@ public class IniFileReader {
     private void handleHelpWebHelp(LinkedList<String> list) {
         if (list.size() >= 2 && currentHelpReferenceName != null) {
             currentHelpWebHelp = list.get(1);
+        }
+    }
+
+    private void handleVeAnalyze(LinkedList<String> list) {
+        if (list.size() < 2) {
+            return;
+        }
+        String key = list.get(0);
+        if (key.equalsIgnoreCase("veAnalyzeMap")) {
+            if (list.size() >= 6) {
+                veAnalyzeMaps.add(new VeAnalyzeMap(list.get(1), list.get(2), list.get(3), list.get(4), list.get(5)));
+            }
+        } else if (key.equalsIgnoreCase("lambdaTargetTables")) {
+            for (int i = 1; i < list.size(); i++) {
+                lambdaTargetTables.add(list.get(i));
+            }
+        } else if (key.equalsIgnoreCase("filter")) {
+            if (list.size() >= 6) {
+                String name = list.get(1);
+                String displayName = list.get(2);
+                String outputChannel = list.get(3);
+                String operator = list.get(4);
+                double defaultValue = Double.parseDouble(list.get(5));
+
+                boolean userAdjustable = false;
+                for (int i = 6; i < list.size(); i++) {
+                    if (list.get(i).equalsIgnoreCase("true")) {
+                        userAdjustable = true;
+                        break;
+                    }
+                }
+                veAnalyzeFilters.add(new VeAnalyzeFilter(name, displayName, outputChannel, operator, defaultValue, userAdjustable));
+            }
         }
     }
 

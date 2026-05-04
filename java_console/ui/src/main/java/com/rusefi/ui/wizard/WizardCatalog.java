@@ -19,33 +19,35 @@ import java.util.function.Predicate;
 public class WizardCatalog {
     private static final List<String> VIN_FIELDS = Collections.singletonList("vinNumber");
 
+    private static final Predicate<UIContext> NOT_HD81 = boardNameContains("hd81").negate();
+
     public static final List<WizardStepDescriptor> ALL = Collections.unmodifiableList(Arrays.asList(
         // ----- Flagged full-wizard steps (order matters; drives step numbering) -----
         new WizardStepDescriptor(
             "wizardNumberOfCylinders",
             true,
-            WizardStepDescriptor.ALWAYS,
+            NOT_HD81,
             null,
             null
         ),
         new WizardStepDescriptor(
             "wizardFiringOrder",
             true,
-            WizardStepDescriptor.ALWAYS,
+            NOT_HD81,
             null,
             null
         ),
         new WizardStepDescriptor(
             "wizardMapSensorType",
             true,
-            WizardStepDescriptor.ALWAYS,
+            NOT_HD81,
             null,
             null
         ),
         new WizardStepDescriptor(
             "wizardCrankTrigger",
             true,
-            WizardStepDescriptor.ALWAYS,
+            NOT_HD81,
             null,
             null
         ),
@@ -72,8 +74,8 @@ public class WizardCatalog {
             ctx -> GenericFieldsPanel.anyFieldEmpty(ctx, VIN_FIELDS),
             ctx -> new GenericFieldsPanel(
                 ctx,
-                "Enter Vehicle Identification Number",
-                "Your ECU's VIN is empty. Enter the VIN to continue.",
+                "Enter Vehicle Identification Number (VIN) to continue",
+                null,
                 VIN_FIELDS,
                 null)
         )

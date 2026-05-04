@@ -54,4 +54,8 @@ public class DelegatingIniFileModel implements IniFileModel {
     @Override public TableModel getTable(String n) { return delegate.getTable(n); }
     @Override public FrontPageModel getFrontPage() { return delegate.getFrontPage(); }
     @Override public List<MenuModel> getMenus() { return delegate.getMenus(); }
+    @Override public Map<String, String> getControllerCommands() { return delegate.getControllerCommands(); }
+    @Override public List<VeAnalyzeMap> getVeAnalyzeMaps() { return delegate.getVeAnalyzeMaps(); }
+    @Override public List<String> getLambdaTargetTables() { return delegate.getLambdaTargetTables(); }
+    @Override public List<VeAnalyzeFilter> getVeAnalyzeFilters() { return delegate.getVeAnalyzeFilters(); }
 }

@@ -49,6 +49,8 @@ import static com.rusefi.ui.basic.UiHelper.commonUiStartup;
 import static com.rusefi.ui.util.UiUtils.createOnTopParent;
 
 /**
+ * Main frame of rusEFI updater app
+ *
  * @see StartupFrame
  */
 public class ConsoleUI {
@@ -65,7 +67,7 @@ public class ConsoleUI {
     private final TabbedPanel tabbedPane;
     private final String port;
 
-    public final UIContext uiContext = new UIContext();
+    public final UIContext uiContext;
 
     /**
      * We can listen to tab activation event if we so desire
@@ -73,6 +75,11 @@ public class ConsoleUI {
     private final Map<Component, ActionListener> tabSelectedListeners = new HashMap<>();
 
     public ConsoleUI(String port, SerialPortType serialPortType) {
+        this(new UIContext(), port, serialPortType, false);
+    }
+
+    public ConsoleUI(UIContext uiContext, String port, SerialPortType serialPortType, boolean alreadyConnected) {
+        this.uiContext = uiContext;
         LinkManager linkManager = uiContext.getLinkManager();
 
         CommandQueue.ERROR_HANDLER = e -> {
@@ -139,8 +146,10 @@ public class ConsoleUI {
         getConfig().getRoot().setProperty(PORT_KEY, port);
         getConfig().getRoot().setProperty(SPEED_KEY, BaudRateHolder.INSTANCE.baudRate);
 
-        // todo: this blocking IO operation should NOT be happening on the UI thread
-        linkManager.start(port, mainFrame.listener);
+        if (!alreadyConnected) {
+            // todo: this blocking IO operation should NOT be happening on the UI thread
+            linkManager.start(port, mainFrame.listener);
+        }
 
         engineSnifferPanel = new EngineSnifferPanel(uiContext, getConfig().getRoot().getChild("digital_sniffer"));
         if (!LinkManager.isLogViewerMode(port))
@@ -162,7 +171,9 @@ public class ConsoleUI {
             tabbedPaneAdd("Lua Scripting", luaScriptPanel.getPanel(), luaScriptPanel.getTabSelectedListener());
         }
 
-        tabbedPaneAdd("Engine Sniffer", engineSnifferPanel.getPanel(), engineSnifferPanel.getTabSelectedListener());
+        if (UiProperties.isEngineSnifferEnabled()) {
+            tabbedPaneAdd("Engine Sniffer", engineSnifferPanel.getPanel(), engineSnifferPanel.getTabSelectedListener());
+        }
 
 
 
@@ -185,10 +196,26 @@ console live data tab is broken #8402
 
             tabbedPane.addTab("Live Data", LiveDataPane.createLazy(uiContext).getContent());
  */
-            tabbedPane.addTab("Tuning", new TuningPane(uiContext).getContent());
+            TuningPane tuningPane = new TuningPane(uiContext);
+            PinoutPane pinoutPane = new PinoutPane(uiContext);
+            tabbedPane.addTab("Tuning", tuningPane.getContent());
             tabbedPane.addTab("Knock Analyzer", new KnockPane(uiContext).getContent());
-            tabbedPane.addTab("Pinout", new PinoutPane(uiContext).getContent());
+            if (UiProperties.isPinoutEnabled()) {
+                tabbedPane.addTab("Pinout", pinoutPane.getContent());
+            }
             tabbedPane.addTab("Device", new DevicePane(uiContext, port, serialPortType, tabbedPane.tabbedPane).getContent());
+
+            // Pinout ↔ Tune bidirectional navigation
+            pinoutPane.setNavigateToTune((dialogKey, fieldKey) -> {
+                tabbedPane.selectTab("Tuning");
+                tuningPane.navigateToField(dialogKey, fieldKey);
+            });
+            if (UiProperties.isPinoutEnabled()) {
+                tuningPane.setNavigateToPinout(enumValue -> {
+                    tabbedPane.selectTab("Pinout");
+                    pinoutPane.highlightByEnumValue(enumValue);
+                });
+            }
         }
 
         if (!linkManager.isLogViewer() && false) // todo: fix it & better name?
@@ -320,9 +347,9 @@ console live data tab is broken #8402
             } else {
                 for (String p : LinkManager.getCommPorts())
                     MessagesCentral.getInstance().postMessage(Launcher.class, "Available port: " + p);
-                StartupFrame startupFrame = new StartupFrame(ConnectivityContext.INSTANCE);
+                StartupFrame startupFrame = new StartupFrame(ConnectivityContext.INSTANCE, new UIContext());
                 if (bannerCallback != null)
-                    bannerCallback.set(startupFrame::showUpdateBanner);
+                    bannerCallback.set(message -> startupFrame.restartConsole());
                 startupFrame.showUi();
             }
 
