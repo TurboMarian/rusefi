@@ -23,15 +23,10 @@
 static_assert(sizeof(composite_logger_s) == COMPOSITE_PACKET_SIZE, "composite packet size");
 
 static volatile bool ToothLoggerEnabled = false;
-//static uint32_t lastEdgeTimestamp = 0;
+static TLmode ToothLoggerMode = TLmode::Full;
 
-static bool currentTrigger1 = false;
-static bool currentTrigger2 = false;
-static bool currentTdc = false;
-// any coil, all coils thrown together
-static bool currentCoilState = false;
-// same about injectors
-static bool currentInjectorState = false;
+// current state
+static composite_logger_s cur;
 
 #if EFI_UNIT_TEST
 
@@ -59,19 +54,21 @@ void SetNextCompositeEntry(efitick_t timestamp) {
 	CompositeEvent event;
 
 	event.timestamp = timestamp;
-	event.primaryTrigger = currentTrigger1;
-	event.secondaryTrigger = currentTrigger2;
-	event.isTDC = currentTdc;
-	event.sync = engine->triggerCentral.triggerState.getShaftSynchronized();
-	event.coil = currentCoilState;
-	event.injector = currentInjectorState;
+	event.primaryTrigger = cur.priLevel;
+	event.secondaryTrigger = cur.cam1;
+	event.isTDC = cur.tdc;
+	event.sync = cur.sync;
+	event.coil = cur.coil;
+	event.injector = cur.injector;
 
 	events.push_back(event);
 }
 
-void EnableToothLogger() {
+bool EnableToothLogger(TLmode mode) {
 	ToothLoggerEnabled = true;
 	events.clear();
+
+	return ToothLoggerEnabled;
 }
 
 void DisableToothLogger() {
@@ -80,12 +77,12 @@ void DisableToothLogger() {
 
 #else // not EFI_UNIT_TEST
 
-static constexpr size_t BUFFER_COUNT = BIG_BUFFER_SIZE / sizeof(CompositeBuffer);
-static_assert(BUFFER_COUNT >= 2);
+static constexpr size_t bufferCount = BIG_BUFFER_SIZE / sizeof(CompositeBuffer);
+static_assert(bufferCount >= 2);
 
 static CompositeBuffer* buffers = nullptr;
-static chibios_rt::Mailbox<CompositeBuffer*, BUFFER_COUNT> freeBuffers CCM_OPTIONAL;
-static chibios_rt::Mailbox<CompositeBuffer*, BUFFER_COUNT> filledBuffers CCM_OPTIONAL;
+static chibios_rt::Mailbox<CompositeBuffer*, bufferCount> freeBuffers;
+static chibios_rt::Mailbox<CompositeBuffer*, bufferCount> filledBuffers;
 
 static CompositeBuffer* currentBuffer = nullptr;
 
@@ -97,18 +94,18 @@ static void setToothLogReady(bool value) {
 
 static BigBufferHandle bufferHandle;
 
-void EnableToothLogger() {
+bool EnableToothLogger(TLmode mode) {
 	chibios_rt::CriticalSectionLocker csl;
 
 	bufferHandle = getBigBuffer(BigBufferUser::ToothLogger);
 	if (!bufferHandle) {
-		return;
+		return false;
 	}
 
 	buffers = bufferHandle.get<CompositeBuffer>();
 
 	// Reset all buffers
-	for (size_t i = 0; i < BUFFER_COUNT; i++) {
+	for (size_t i = 0; i < bufferCount; i++) {
 		buffers[i].nextIdx = 0;
 	}
 
@@ -117,32 +114,33 @@ void EnableToothLogger() {
 
 	// Empty the filled buffer list
 	CompositeBuffer* dummy;
-	while (MSG_TIMEOUT != filledBuffers.fetchI(&dummy)) ;
+	while (MSG_TIMEOUT != filledBuffers.fetchI(&dummy))
+		;
 
 	// Put all buffers in the free list
-	for (size_t i = 0; i < BUFFER_COUNT; i++) {
+	for (size_t i = 0; i < bufferCount; i++) {
 		freeBuffers.postI(&buffers[i]);
 	}
 
-	// Reset the last edge to now - this prevents the first edge logged from being bogus
-	//lastEdgeTimestamp = getTimeNowUs();
-
 	// Enable logging of edges as they come
 	ToothLoggerEnabled = true;
+	ToothLoggerMode = mode;
 
 	setToothLogReady(false);
+
+	return true;
 }
 
 void DisableToothLogger() {
 	chibios_rt::CriticalSectionLocker csl;
 
-	ToothLoggerEnabled = false;
-	setToothLogReady(false);
-
 	// Release the big buffer for another user
 	// C++ magic: here we are calling BigBufferHandle::operator=() with empty instance
 	bufferHandle = {};
 	buffers = nullptr;
+
+	ToothLoggerEnabled = false;
+	setToothLogReady(false);
 }
 
 static CompositeBuffer* GetToothLoggerBufferImpl(sysinterval_t timeout) {
@@ -157,13 +155,6 @@ static CompositeBuffer* GetToothLoggerBufferImpl(sysinterval_t timeout) {
 	if (msg != MSG_OK) {
 		// What even happened if we didn't get timeout, but also didn't get OK?
 		return nullptr;
-	}
-
-	chibios_rt::CriticalSectionLocker csl;
-
-	// If the used list is empty, clear the ready flag
-	if (filledBuffers.getUsedCountI() == 0) {
-		setToothLogReady(false);
 	}
 
 	return buffer;
@@ -181,7 +172,12 @@ void ReturnToothLoggerBuffer(CompositeBuffer* buffer) {
 	chibios_rt::CriticalSectionLocker csl;
 
 	msg_t msg = freeBuffers.postI(buffer);
-	criticalAssertVoid(msg == MSG_OK, "Composite logger post to free buffer fail");
+	efiAssertVoid(ObdCode::OBD_PCM_Processor_Fault, msg == MSG_OK, "Composite logger post to free buffer fail");
+
+	// If the used list is empty, clear the ready flag
+	if (filledBuffers.getUsedCountI() == 0) {
+		setToothLogReady(false);
+	}
 }
 
 static CompositeBuffer* findBuffer(efitick_t timestamp) {
@@ -223,16 +219,13 @@ static void SetNextCompositeEntry(efitick_t timestamp) {
 	if (idx < efi::size(buffer->buffer)) {
 		composite_logger_s* entry = &buffer->buffer[idx];
 
-		uint32_t nowUs = NT2US(timestamp);
+		entry->x = cur.x;
+		entry->timestamp = NT2US(timestamp);
 
 		// TS uses big endian, grumble
-		entry->timestamp = SWAP_UINT32(nowUs);
-		entry->priLevel = currentTrigger1;
-		entry->secLevel = currentTrigger2;
-		entry->trigger = currentTdc;
-		entry->sync = engine->triggerCentral.triggerState.getShaftSynchronized();
-		entry->coil = currentCoilState;
-		entry->injector = currentInjectorState;
+		// the whole order of all packet bytes is reversed, not just the 'endian-swap' integers
+		// swap whole record byteorder
+		entry->x = SWAP_UINT64(entry->x);
 	}
 
 	// if the buffer is full...
@@ -258,32 +251,7 @@ static void SetNextCompositeEntry(efitick_t timestamp) {
 #define JSON_TRG_PID 4
 #define JSON_CAM_PID 10
 
-void LogTriggerSync(bool isSync, efitick_t timestamp) {
-#if EFI_UNIT_TEST
-	jsonTraceEntry("sync", 3, /*isEnter*/isSync, timestamp);
-#else
-	UNUSED(isSync); UNUSED(timestamp);
-#endif
-}
-
-void LogTriggerCamTooth(bool isRising, efitick_t timestamp, int index) {
-#if EFI_UNIT_TEST
-	jsonTraceEntry("cam", JSON_CAM_PID + index, /*isEnter*/isRising, timestamp);
-#else
-	UNUSED(isRising); UNUSED(timestamp); UNUSED(index);
-#endif
-}
-
-void LogTriggerTooth(trigger_event_e tooth, efitick_t timestamp) {
-#if EFI_UNIT_TEST
-	if (tooth == SHAFT_PRIMARY_RISING) {
-		jsonTraceEntry("trg0", JSON_TRG_PID, /*isEnter*/true, timestamp);
-	} else if (tooth == SHAFT_PRIMARY_FALLING) {
-		jsonTraceEntry("trg0", JSON_TRG_PID, /*isEnter*/false, timestamp);
-	}
-#endif // EFI_UNIT_TEST
-
-    efiAssertVoid(ObdCode::CUSTOM_ERR_6650, hasLotsOfRemainingStack(), "l-t-t");
+static void LogTriggerTooth(efitick_t timestamp) {
 	// bail if we aren't enabled
 	if (!ToothLoggerEnabled) {
 		return;
@@ -296,81 +264,120 @@ void LogTriggerTooth(trigger_event_e tooth, efitick_t timestamp) {
 
 	ScopePerf perf(PE::LogTriggerTooth);
 
-/*
-		// We currently only support the primary trigger falling edge
-    	// (this is the edge that VR sensors are accurate on)
-    	// Since VR sensors are the most useful case here, this is okay for now.
-    	if (tooth != SHAFT_PRIMARY_FALLING) {
-    		return;
-    	}
+	SetNextCompositeEntry(timestamp);
+}
 
-    	uint32_t nowUs = NT2US(timestamp);
-    	// 10us per LSB - this gives plenty of accuracy, yet fits 655.35 ms in to a uint16
-    	uint16_t delta = static_cast<uint16_t>((nowUs - lastEdgeTimestamp) / 10);
-    	lastEdgeTimestamp = nowUs;
+void LogPrimaryTriggerTooth(efitick_t timestamp, bool state) {
+	cur.trigger = false;
+	cur.priLevel = state;
 
-    	SetNextEntry(delta);
-*/
-
-	switch (tooth) {
-	case SHAFT_PRIMARY_FALLING:
-		currentTrigger1 = false;
-		break;
-	case SHAFT_PRIMARY_RISING:
-		currentTrigger1 = true;
-		break;
-	case SHAFT_SECONDARY_FALLING:
-		currentTrigger2 = false;
-		break;
-	case SHAFT_SECONDARY_RISING:
-		currentTrigger2 = true;
-		break;
-	default:
-		break;
+	// in tooth mode we are interested in rising edges of primary only
+	if ((ToothLoggerMode == TLmode::PrimaryTooth) &&
+		(state == false)) {
+		return;
 	}
 
-	SetNextCompositeEntry(timestamp);
+	LogTriggerTooth(timestamp);
+
+#if EFI_UNIT_TEST
+	jsonTraceEntry("trg0", JSON_TRG_PID, /*isEnter*/state, timestamp);
+#endif // EFI_UNIT_TEST
+}
+
+void LogCamTriggerTooth(efitick_t timestamp, int camIndex, bool state) {
+	if (camIndex < 4) {
+		cur.trigger = true;
+
+		if (camIndex == 0) {
+			cur.cam1 = state;
+		} else if (camIndex == 1) {
+			cur.cam2 = state;
+		} else if (camIndex == 2) {
+			cur.cam3 = state;
+		} else if (camIndex == 3) {
+			cur.cam4 = state;
+		}
+
+		// in tooth mode we are interested in rising edges of primary only
+		if (ToothLoggerMode == TLmode::PrimaryTooth) {
+			return;
+		}
+		LogTriggerTooth(timestamp);
+	}
+
+#if EFI_UNIT_TEST
+	jsonTraceEntry("cam", JSON_CAM_PID + camIndex, /*isEnter*/state, timestamp);
+#endif
 }
 
 void LogTriggerTopDeadCenter(efitick_t timestamp) {
-	// bail if we aren't enabled
-	if (!ToothLoggerEnabled) {
+	// in tooth mode we are interested in rising edges of primary only
+	if (ToothLoggerMode == TLmode::PrimaryTooth) {
 		return;
 	}
-	currentTdc = true;
-	SetNextCompositeEntry(timestamp);
-	currentTdc = false;
-	SetNextCompositeEntry(timestamp + 10);
+
+	// just togle TDC flag, this looks good on graph
+	cur.tdc = !cur.tdc;
+	LogTriggerTooth(timestamp);
+}
+
+void LogTriggerSync(efitick_t timestamp, bool isSync) {
+	cur.sync = isSync;
+	LogTriggerTooth(timestamp);;
+
+#if EFI_UNIT_TEST
+	jsonTraceEntry("sync", 3, /*isEnter*/isSync, timestamp);
+#endif
 }
 
 void LogTriggerCoilState(efitick_t timestamp, size_t index, bool state) {
+	if (index < 8) {
+		if (state) {
+			cur.coil |= (1 << index);
+		} else {
+			cur.coil &= ~(1 << index);
+		}
+
+		// in tooth mode we are interested in rising edges of primary only
+		if (ToothLoggerMode == TLmode::PrimaryTooth) {
+			return;
+		}
+
+		LogTriggerTooth(timestamp);
+	}
+
 #if EFI_UNIT_TEST
 	jsonTraceEntry("coil", 20 + index, state, timestamp);
 #endif // EFI_UNIT_TEST
-	if (!ToothLoggerEnabled) {
-		return;
-	}
-	currentCoilState = state;
-	UNUSED(timestamp); UNUSED(index);
-	//SetNextCompositeEntry(timestamp, trigger1, trigger2, trigger);
 }
 
 void LogTriggerInjectorState(efitick_t timestamp, size_t index, bool state) {
+	if (index < 8) {
+		if (state) {
+			cur.injector |= (1 << index);
+		} else {
+			cur.injector &= ~(1 << index);
+		}
+
+		// in tooth mode we are interested in rising edges of primary only
+		if (ToothLoggerMode == TLmode::PrimaryTooth) {
+			return;
+		}
+
+		LogTriggerTooth(timestamp);
+	}
+
 #if EFI_UNIT_TEST
 	jsonTraceEntry("inj", 30 + index, state, timestamp);
 #endif // EFI_UNIT_TEST
-	if (!ToothLoggerEnabled) {
-		return;
-	}
-	currentInjectorState = state;
-	UNUSED(timestamp); UNUSED(index);
-	//SetNextCompositeEntry(timestamp, trigger1, trigger2, trigger);
 }
 
-void EnableToothLoggerIfNotEnabled() {
+bool EnableToothLoggerIfNotEnabled(TLmode mode) {
 	if (!ToothLoggerEnabled) {
-		EnableToothLogger();
+		ToothLoggerEnabled = EnableToothLogger(mode);
 	}
+
+	return ToothLoggerEnabled;
 }
 
 bool IsToothLoggerEnabled() {

@@ -269,3 +269,5 @@ public:
 	 */
 	angle_t eventAngles[2 * PWM_PHASE_MAX_COUNT];
 };
+
+void initializeRiseOnlyTrigger(TriggerWaveform *s, float w, const angle_t angles[], size_t count, operation_mode_e mode = FOUR_STROKE_CAM_SENSOR);

@@ -1,6 +1,6 @@
 ### Project Structure and Module Locations
 
-See also CLAUDE.md, .junie/ts-help-topic.md and .junie/ts-readme.md
+See also CLAUDE.md, docs/adding-new-trigger.md, .junie/ts-help-topic.md and .junie/ts-readme.md
 
 rusEFI is an open-source engine control unit firmware for STM32 microcontrollers.
 
@@ -42,6 +42,15 @@ That .ini file would be parsed into IniFileModel instance giving java code knowl
 #### UI entry points
 - rusefi_updater.exe (see console_launcher folder for launch4j) invokes Launcher#main with empty args; the merged launcher handles both the autoupdate flow and the console UI
 - rusefi_autoupdate.exe entry point is Autoupdate#main
+
+#### TS templating:
+- Pattern: `#define CAM_INPUT_1_1_NAME "Cam sensor bank 1 intake"` in `rusefi_config.txt`
+- Usage: `@@CAM_INPUT_1_1_NAME@@` in `tunerstudio.template.ini`
+- This pattern is used for dynamic strings in the TunerStudio UI.
+
+#### Autoupdate:
+- Logic for bypassing: Caps Lock key skips the automatic update process.
+- Configuration: `autoupdate_bundle=true` in `shared_io.properties` controls the global auto-update behavior.
 
 #### subject domain
 - Timing: In the context of engine control, "timing" usually refers to **ignition timing advance** (the angle before TDC when the spark occurs).

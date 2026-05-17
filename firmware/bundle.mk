@@ -13,12 +13,12 @@ ifeq (,$(GITHUB_SHA))
 endif
 
 # SIGNATURE_HASH is the same hash that ends up in the generated .ini TS_SIGNATURE
-# (see gen_signature.sh and controllers/generated/signature_$(SHORT_BOARD_NAME).h).
+# (see gen_signature.sh and $(META_OUTPUT_ROOT_FOLDER)controllers/generated/signature_$(SHORT_BOARD_NAME).h).
 # It uniquely identifies the calibration layout of this firmware build, while
 # GITHUB_SHA identifies the source commit. Including both in the .srec filename
 # lets the autoupdater/console pair an update artifact with the exact .ini it
 # was built against, even when GITHUB_SHA is "local" or duplicated across builds.
-SIGNATURE_HASH_FILE = controllers/generated/signature_$(SHORT_BOARD_NAME).h
+SIGNATURE_HASH_FILE = $(META_OUTPUT_ROOT_FOLDER)controllers/generated/signature_$(SHORT_BOARD_NAME).h
 SIGNATURE_HASH = $(shell awk '/define[ \t]+SIGNATURE_HASH/ {print $$3}' $(SIGNATURE_HASH_FILE) 2>/dev/null)
 ifeq (,$(SIGNATURE_HASH))
   SIGNATURE_HASH = nohash
@@ -235,7 +235,7 @@ else
 endif
 	@touch $@
 
-OBFUSCATED_SREC = $(FOLDER)/rusefi-$(BRANCH_REF_FOR_BUNDLE)_$(BUNDLE_DATE)_$(GITHUB_SHA)_obfuscated.srec
+OBFUSCATED_SREC = $(FOLDER)/rusefi-$(BRANCH_REF_FOR_BUNDLE)_$(BUNDLE_DATE)_$(BUNDLE_NAME)_$(SIGNATURE_HASH)_$(GITHUB_SHA)_obfuscated.srec
 
 OBFUSCATED_OUT = \
   $(FOLDER)/rusefi-obfuscated.bin \
