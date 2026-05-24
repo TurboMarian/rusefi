@@ -80,7 +80,6 @@ void DisableToothLogger() {
 static constexpr size_t bufferCount = BIG_BUFFER_SIZE / sizeof(CompositeBuffer);
 static_assert(bufferCount >= 2);
 
-static CompositeBuffer* buffers = nullptr;
 static chibios_rt::Mailbox<CompositeBuffer*, bufferCount> freeBuffers;
 static chibios_rt::Mailbox<CompositeBuffer*, bufferCount> filledBuffers;
 
@@ -102,7 +101,7 @@ bool EnableToothLogger(TLmode mode) {
 		return false;
 	}
 
-	buffers = bufferHandle.get<CompositeBuffer>();
+	CompositeBuffer* buffers = bufferHandle.get<CompositeBuffer>();
 
 	// Reset all buffers
 	for (size_t i = 0; i < bufferCount; i++) {
@@ -137,7 +136,6 @@ void DisableToothLogger() {
 	// Release the big buffer for another user
 	// C++ magic: here we are calling BigBufferHandle::operator=() with empty instance
 	bufferHandle = {};
-	buffers = nullptr;
 
 	ToothLoggerEnabled = false;
 	setToothLogReady(false);
@@ -383,5 +381,113 @@ bool EnableToothLoggerIfNotEnabled(TLmode mode) {
 bool IsToothLoggerEnabled() {
 	return ToothLoggerEnabled;
 }
+
+#if EFI_FILE_LOGGING
+
+static int ToothLoggerWriteCsvHeader(Writer &writer) {
+	// keep in sync with composite_logger_s
+	// drop trigger - purpose not clear
+	const char header[] = "Time[s], Primary, Cam 1, Cam 2, Cam 3, Cam 4, Sync, TDC, Coils, Injectors\r\n";
+
+	// no tailing '\0'
+	writer.write(header, sizeof(header) - 1);
+
+	return 0;
+}
+
+static int ToothLoggerWriteCsv(Writer &writer, CompositeBuffer* buffer) {
+	size_t total = 0;
+	char tmp[128];
+
+	for (size_t i = 0; i < buffer->nextIdx; i++) {
+		// Swap back
+		composite_logger_s c;
+		c.x = SWAP_UINT64(buffer->buffer[i].x);
+
+		// it is cheaper to write all data, even we have 1 cylinder engine with single crank sensor
+		int ret = chsnprintf(tmp, sizeof(tmp), "%d.%06d, "
+					"%d, %d, %d, %d, %d, "
+					"%d, %d, "
+					"%d, %d\r\n",	// TODO: convert to bitwise?
+				c.timestamp / 1000000, c.timestamp % 1000000,
+				c.priLevel, c.cam1, c.cam2, c.cam3, c.cam4,
+				c.sync, c.tdc,
+				c.coil, c.injector);
+
+		if ((ret < 0) || (ret >= sizeof(tmp))) {
+			return -1;
+		}
+
+		ret = writer.write(tmp, ret);
+
+		total += ret;
+	}
+
+	return total;
+}
+
+static int ToothLoggerWriteBin(Writer &writer, CompositeBuffer* buffer) {
+	int size = buffer->nextIdx * sizeof(composite_logger_s);
+
+	writer.write(reinterpret_cast<const char*>(buffer->buffer), size);
+
+	return size;
+}
+
+bool ToothLoggerHasData() {
+	chibios_rt::CriticalSectionLocker csl;
+
+	return ((currentBuffer) ||
+		(filledBuffers.getUsedCountI() > 0));
+
+}
+
+static bool sdTriggerLogCsv = 0;
+
+int ToothLoggerWriter(FileBufferedWriter &writer) {
+	int ret = 0;
+	CompositeBuffer* buffer = nullptr;
+	bool startNewFile = false;
+
+	// manualy pick buffer, do not use GetToothLoggerBufferImpl() as it changes TS buffer ready flag
+	msg_t msg = filledBuffers.fetch(&buffer, TIME_MS2I(3000));
+	if ((msg != MSG_OK) && (msg != MSG_TIMEOUT)) {
+		// error?
+		return -1;
+	}
+	if (msg == MSG_TIMEOUT) {
+		chibios_rt::CriticalSectionLocker csl;
+		// if we did not get any event within 3 seconds - finish current file and wait for new event.
+		startNewFile = true;
+
+		// flush data from currently writing buffer!
+		if (currentBuffer) {
+			buffer = currentBuffer;
+			currentBuffer = nullptr;
+		}
+	}
+
+	// can return nullptr
+	if (buffer) {
+		// on-fly format change is not supported
+		if (writer.size() == 0) {
+			sdTriggerLogCsv = engineConfiguration->sdTriggerLogCsv;
+		}
+		if (sdTriggerLogCsv) {
+			if (writer.size() == 0) {
+				ToothLoggerWriteCsvHeader(writer);
+			}
+			ret = ToothLoggerWriteCsv(writer, buffer);
+		} else {
+			ret = ToothLoggerWriteBin(writer, buffer);
+		}
+
+		ReturnToothLoggerBuffer(buffer);
+	}
+
+	return startNewFile ? 0 : ret;
+}
+
+#endif /* EFI_FILE_LOGGING */
 
 #endif /* EFI_TOOTH_LOGGER */

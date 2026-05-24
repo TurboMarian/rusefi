@@ -6,7 +6,11 @@ rusEFI is an open-source engine control unit firmware for STM32 microcontrollers
 
 Main firmware is located in `firmware` folder (relative to project root). This is C++ code.
 
-Unit tests are located in `unit_tests` folder (relative to project root). This is C++ code.
+Unit tests are located in `unit_tests` folder (relative to project root). This is C++ code (C++17 minimum; firmware uses C++20).
+
+Unit tests **must remain cross-platform**: code under `unit_tests/` has to build and run on Linux (GCC/Clang), macOS (Clang), and Windows (MSVC and MinGW). Prefer portable C++17 facilities (e.g. `std::filesystem` over `realpath`/`_fullpath`, `std::string` over fixed `PATH_MAX` buffers) and guard any unavoidable POSIX-only or Win32-only API with appropriate `#ifdef`s.
+
+To troubleshoot unexpected test output (scheduler events, RPM, injection/ignition timings), enable per-test artifact logging via `setUnitTestCreateLogs(true)` (from `unit_tests/test-framework/engine_test_helper.h`) before constructing `EngineTestHelper`. The framework will then write trace/sniffer/logic-data files into `unit_tests/test_results/` (one `unittest_<Suite>_<Name>_*.json` per test) and print the absolute path at process exit. Prefer this over ad-hoc `printf` debugging.
 
 This Java Gradle project has some build tools and our frontend application; it's a multi-repo-like structure where some modules are located outside the current root (`java_tools`).
 
@@ -104,4 +108,9 @@ See CLAUDE.md
 
 ### Coding Style
 - Always use curly brackets for `if` statements, even for single-line blocks.
+
+### Bug Fix Process
+- **Mandatory separation**: When fixing a bug, you must first create and commit (or submit in a separate prompt) a reproduction test case that fails without the fix.
+- Only after the reproduction test case is verified to fail, you may proceed with implementing and committing the fix.
+- Verification of the fix must be done using the same reproduction test case.
 
