@@ -131,6 +131,15 @@ void defaultsOrFixOnBurn() {
     setDynoDefaults();
   }
 
+#if HW_PROTEUS && defined(STM32F4XX)
+  // should have been proteus per-board validation
+  engineConfiguration->is_enabled_spi_5 = false;
+#endif
+
+  if (engineConfiguration->launchTpsThreshold < MIN_launchTpsThreshold) {
+    engineConfiguration->launchTpsThreshold = MIN_launchTpsThreshold;
+  }
+
 	if (engineConfiguration->mapExpAverageAlpha <= 0 || engineConfiguration->mapExpAverageAlpha > 1) {
 	  engineConfiguration->mapExpAverageAlpha = 1;
 	}
@@ -417,12 +426,14 @@ void setDefaultBaseEngine() {
 	engineConfiguration->issFilterReciprocal = 2;
 
 	//knock
-#ifdef KNOCK_SPECTROGRAM
+	// Still set defaults, even spectrogram is not enaled.
+	// these fields unsconditionaly exists in config, lets keep safe defaults
+//#ifdef KNOCK_SPECTROGRAM
 	engineConfiguration->enableKnockSpectrogram = false;
 	engineConfiguration->enableKnockSpectrogramFilter = false;
 	engineConfiguration->knockSpectrumSensitivity = 1.0;
 	engineConfiguration->knockFrequency = 0.0;
-#endif
+//#endif
 
 	// Check engine light
 #if EFI_PROD_CODE

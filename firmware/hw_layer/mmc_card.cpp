@@ -16,7 +16,7 @@
 
 #if EFI_FILE_LOGGING
 
-#include "buffered_writer.h"
+#include "file_writer.h"
 #include "status_loop.h"
 #include "binary_mlg_logging.h"
 
@@ -28,8 +28,6 @@
 
 // at about 20Hz we write about 2Kb per second, looks like we flush once every ~2 seconds
 #define F_SYNC_FREQUENCY 10
-
-static bool sdLoggerReady = false;
 
 #if EFI_PROD_CODE
 
@@ -47,106 +45,9 @@ static bool sdLoggerReady = false;
 #include "storage_sd.h"
 #endif // EFI_STORAGE_SD
 
-// TODO: do we need this additioal layer of buffering?
-// FIL structure already have buffer of FF_MAX_SS size
-// check if it is better to increase FF_MAX_SS and drop BufferedWriter?
-struct SdLogBufferWriter final : public BufferedWriter<512> {
-	bool failed = false;
-
-	int start(FIL *fd) {
-		if (m_fd) {
-			efiPrintf("SD logger already started!");
-			return -1;
-		}
-
-		totalLoggedBytes = 0;
-		writeCounter = 0;
-
-		m_fd = fd;
-
-		return 0;
-	}
-
-	void stop() {
-		m_fd = nullptr;
-
-		flush();
-
-		totalLoggedBytes = 0;
-		writeCounter = 0;
-	}
-
-	size_t writen() {
-		return totalLoggedBytes;
-	}
-
-	size_t writeInternal(const char* buffer, size_t count) override {
-		if ((!m_fd) || (failed)) {
-			return 0;
-		}
-
-		size_t bytesWritten;
-		efiAssert(ObdCode::CUSTOM_STACK_6627, hasLotsOfRemainingStack(), "sdlow#3", 0);
-		FRESULT err = f_write(m_fd, buffer, count, &bytesWritten);
-
-		if (err) {
-			printFatFsError("log file write", err);
-			failed = true;
-			return 0;
-		} else if (bytesWritten != count) {
-			printFatFsError("log file write partitial", err);
-			failed = true;
-			return 0;
-		} else {
-			writeCounter++;
-			totalLoggedBytes += count;
-			if (writeCounter >= F_SYNC_FREQUENCY) {
-				/**
-				 * Performance optimization: not f_sync after each line, f_sync is probably a heavy operation
-				 * todo: one day someone should actually measure the relative cost of f_sync
-				 */
-				f_sync(m_fd);
-				writeCounter = 0;
-			}
-		}
-
-		return bytesWritten;
-	}
-
-private:
-	FIL *m_fd = nullptr;
-
-	size_t totalLoggedBytes = 0;
-	size_t writeCounter = 0;
-};
-
-#else // not EFI_PROD_CODE (simulator)
-
-#include <fstream>
-
-class SdLogBufferWriter final : public BufferedWriter<512> {
-public:
-	bool failed = false;
-
-	SdLogBufferWriter()
-		: m_stream("rusefi_simulator_log.mlg", std::ios::binary | std::ios::trunc)
-	{
-		sdLoggerReady = true;
-	}
-
-	size_t writeInternal(const char* buffer, size_t count) override {
-		m_stream.write(buffer, count);
-		m_stream.flush();
-		return count;
-	}
-
-private:
-	std::ofstream m_stream;
-};
-
 #endif
 
-static NO_CACHE SdLogBufferWriter logBuffer;
+static NO_CACHE FileBufferedWriter logBuffer;
 
 #if EFI_PROD_CODE
 
@@ -189,6 +90,7 @@ static const char *sdStatusName(SD_STATUS status)
 	return sdStatusNames[status];
 }
 
+static bool sdLoggerReady = false;
 static SD_STATUS sdStatus = SD_STATUS_INIT;
 
 static SD_MODE sdMode = SD_MODE_IDLE;
@@ -239,6 +141,9 @@ static MMCConfig mmccfg = {
 static NO_CACHE FATFS MMC_FS;
 
 static void sdLoggerSetReady(bool value) {
+#if EFI_TUNER_STUDIO
+	engine->outputChannels.sd_logging_internal = value;
+#endif
 	sdLoggerReady = value;
 }
 
@@ -324,7 +229,7 @@ static void sdStatistics() {
 	efiPrintf("SDIO mode");
 #endif
 	if (sdLoggerIsReady()) {
-		efiPrintf("filename=%s size=%d", logName, logBuffer.writen());
+		efiPrintf("filename=%s size=%d", logName, logBuffer.size());
 	}
 #if EFI_FILE_LOGGING
 	efiPrintf("%d SD card fields", MLG::getSdCardFieldsCount());
@@ -401,7 +306,7 @@ static int sdLoggerCreateFile(FIL *fd) {
 	}
 #endif
 
-	// SD logger is ok
+	// SD logger is running
 	sdLoggerSetReady(true);
 
 	return 0;
@@ -536,9 +441,9 @@ static bool useMsdMode() {
 		return false;
 	}
 	if (isIgnVoltage()) {
-	  // if we have battery voltage let's give priority to logging not reading
-	  // this gives us a chance to SD card log cranking
-	  return false;
+		// if we have battery voltage let's give priority to logging not reading
+		// this gives us a chance to SD card log cranking
+		return false;
 	}
 	// Wait for the USB stack to wake up, or a 15 second timeout, whichever occurs first
 	msg_t usbResult = usbConnectedSemaphore.wait(TIME_MS2I(15000));
@@ -605,7 +510,6 @@ static bool mountMmc() {
 
 #if EFI_TUNER_STUDIO
 	engine->outputChannels.sd_error = (uint8_t) ret;
-	engine->outputChannels.sd_logging_internal = (ret == FR_OK);
 #endif
 
 	return (ret == FR_OK);
@@ -631,8 +535,8 @@ static void unmountMmc() {
 
 #if EFI_TUNER_STUDIO
 	engine->outputChannels.sd_error = (uint8_t) ret;
-	engine->outputChannels.sd_logging_internal = false;
 #endif
+	sdLoggerSetReady(false);
 
 	efiPrintf("SD card unmounted");
 }
@@ -656,19 +560,71 @@ bool mountMmc() {
 // Log 'regular' ECU log to MLG file
 static int mlgLogger();
 
-// Log binary trigger log
-static int sdTriggerLogger();
-
 static bool sdLoggerInitDone = false;
 static bool sdLoggerFailed = false;
 
 static bool sdLoggedSuppressed = false;
 
-// actually write logs on SD card
-static int sdLogger(FIL *fd) {
-  if (sdLoggedSuppressed) {
-    return 0;
-  }
+#if EFI_TOOTH_LOGGER
+static int sdLoggerTooth(FIL *fd) {
+	int ret = 0;
+
+	// file is not created yet?
+	if (!sdLoggerInitDone) {
+		// do we have some data ready?
+		if (!ToothLoggerHasData()) {
+			// nothing to log
+			// wait another 100mS for tooth data
+			chThdSleepMilliseconds(100);
+			return 0;
+		}
+
+		// Ok, lets create file
+		incLogFileName(fd);
+
+		ret = sdLoggerCreateFile(fd);
+		if (ret != 0) {
+			sdLoggerFailed = true;
+			return -1;
+		}
+
+		ret = logBuffer.init(fd);
+		if (ret != 0) {
+			// TODO: close file
+			sdLoggerFailed = true;
+			return -2;
+		}
+
+		sdLoggerInitDone = true;
+	}
+
+	// we have file... do we have some data to write?
+	ret = ToothLoggerWriter(logBuffer);
+	if (ret > 0) {
+		// we have data, we have successfully wrote it
+		return ret;
+	}
+
+	if (ret < 0) {
+		// some error
+		sdLoggerFailed = true;
+	}
+
+	// some error or no more data...
+	// in both cases: close file
+	logBuffer.stop();
+	sdLoggerCloseFile(fd);
+
+	// need to start new file
+	sdLoggerInitDone = false;
+
+	// error or size of wroten data
+	return ret;
+}
+#endif
+
+// actually write mlg log on SD card
+static int sdLoggerMlg(FIL *fd) {
 	int ret = 0;
 
 	if (!sdLoggerInitDone) {
@@ -676,42 +632,34 @@ static int sdLogger(FIL *fd) {
 		MLG::resetFileLogging();
 
 		ret = sdLoggerCreateFile(fd);
-		if (ret == 0) {
-			ret = logBuffer.start(fd);
+		if (ret != 0) {
+			sdLoggerFailed = true;
+			return -1;
+		}
+		ret = logBuffer.init(fd);
+		if (ret != 0) {
+			// TODO: close file
+			sdLoggerFailed = true;
+			return -2;
 		}
 
 		sdLoggerInitDone = true;
-
-		if (ret < 0) {
-			sdLoggerFailed = true;
-			return ret;
-		}
 	}
 
-	if (!sdLoggerFailed) {
-		if (engineConfiguration->sdTriggerLog) {
-			ret = sdTriggerLogger();
-		} else {
-			ret = mlgLogger();
-		}
-	}
+	ret = mlgLogger();
 
 	if (ret < 0) {
+		logBuffer.stop();
+		sdLoggerCloseFile(fd);
 		sdLoggerFailed = true;
 		return ret;
-	}
-
-	if (sdLoggerFailed) {
-		// logger is dead until restart, do not waste CPU
-		chThdSleepMilliseconds(100);
-		return -1;
 	}
 
 #ifdef LOGGER_MAX_FILE_SIZE
 	// check if we need to start next log file
 	// in next write (assume same size as current) will cross LOGGER_MAX_FILE_SIZE boundary
 	// TODO: use f_tell() instead ?
-	if (logBuffer.writen() + ret > LOGGER_MAX_FILE_SIZE) {
+	if (logBuffer.size() + ret > LOGGER_MAX_FILE_SIZE) {
 		logBuffer.stop();
 		sdLoggerCloseFile(fd);
 
@@ -729,7 +677,7 @@ static void sdLoggerStart()
 	sdLoggerFailed = false;
 
 #if EFI_TOOTH_LOGGER
-	// TODO: cache this config option untill sdLoggerStop()
+	// TODO: cache this config option until sdLoggerStop()
 	if (engineConfiguration->sdTriggerLog) {
 		EnableToothLogger();
 	}
@@ -740,7 +688,7 @@ static void sdLoggerStop()
 {
 	sdLoggerCloseFile(&resources.fd);
 #if EFI_TOOTH_LOGGER
-	// TODO: cache this config option untill sdLoggerStop()
+	// TODO: pick this config option from cached
 	if (engineConfiguration->sdTriggerLog) {
 		DisableToothLogger();
 	}
@@ -878,8 +826,22 @@ static int sdModeExecuter()
 			errorHandlerDeleteReports();
 			sdNeedRemoveReports = false;
 		}
-		// execute logger
-		return sdLogger(&resources.fd);
+
+		if ((sdLoggedSuppressed) || (sdLoggerFailed)) {
+			// logger is dead or paused, do not waste CPU
+			chThdSleepMilliseconds(100);
+			return 0;
+		}
+
+		// execute one of logger
+#if EFI_TOOTH_LOGGER
+		if (engineConfiguration->sdTriggerLog) {
+			return sdLoggerTooth(&resources.fd);
+		} else
+#endif
+		{
+			return sdLoggerMlg(&resources.fd);
+		}
 	}
 
 	return 0;
@@ -928,12 +890,12 @@ static THD_FUNCTION(MMCmonThread, arg) {
 	if (mountMmc()) {
 		sdReportStorageInit();
 
-		sdMode = SD_MODE_ECU;
-
 #if EFI_STORAGE_SD == TRUE
 		// Give some time for storage manager to load settings from SD
 		chThdSleepMilliseconds(1000);
 #endif
+
+		unmountMmc();
 	}
 
 #if HAL_USE_USB_MSD
@@ -947,7 +909,9 @@ static THD_FUNCTION(MMCmonThread, arg) {
 
 	while (1) {
 		sdModeSwitcher();
-		sdModeExecuter();
+		if (sdModeExecuter() == 0) {
+			chThdSleepMilliseconds(100);
+		}
 	}
 
 die:
@@ -964,6 +928,7 @@ die:
 }
 
 static int mlgLogger() {
+	static size_t writeCounter = 0;
 	// TODO: move this check somewhere out of here!
 	// if the SPI device got un-picked somehow, cancel SD card
 	// Don't do this check at all if using SDMMC interface instead of SPI
@@ -982,6 +947,16 @@ static int mlgLogger() {
 		return -1;
 	}
 
+	writeCounter++;
+	if (writeCounter >= F_SYNC_FREQUENCY) {
+		/**
+		 * Performance optimization: not f_sync after each line, sync is probably a heavy operation
+		 * todo: one day someone should actually measure the relative cost of sync
+		 */
+		logBuffer.sync();
+		writeCounter = 0;
+	}
+
 	auto freq = engineConfiguration->sdCardLogFrequency;
 	if (freq > 250) {
 		freq = 250;
@@ -993,25 +968,6 @@ static int mlgLogger() {
 	chThdSleepUntilWindowed(before, before + period);
 
 	return writen;
-}
-
-static int sdTriggerLogger() {
-	int ret = 0;
-#if EFI_TOOTH_LOGGER
-	auto buffer = GetToothLoggerBufferBlocking();
-
-	// can return nullptr
-	if (buffer) {
-		ret = buffer->nextIdx * sizeof(composite_logger_s);
-		logBuffer.write(reinterpret_cast<const char*>(buffer->buffer), ret);
-		if (logBuffer.failed) {
-			ret = -1;
-		}
-
-		ReturnToothLoggerBuffer(buffer);
-	}
-#endif /* EFI_TOOTH_LOGGER */
-	return ret;
 }
 
 #endif // EFI_PROD_CODE

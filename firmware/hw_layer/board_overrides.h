@@ -30,7 +30,7 @@
 
 // function with no parameters and returning void
 using setup_custom_board_overrides_type = void (*)();
-using setup_custom_board_config_type = void (*)(engine_configuration_s * /*previousConfiguration*/);
+using setup_custom_board_config_type = void (*)(const engine_configuration_s * /*previousConfiguration*/);
 using setup_custom_board_output_type = int (*)();
 using setup_custom_board_engine_type_type = void (*)(engine_type_e);
 using setup_custom_get_float_type = float (*)();
@@ -69,6 +69,8 @@ extern std::optional<setup_custom_board_overrides_type> custom_board_InitHardwar
 extern std::optional<setup_custom_board_overrides_type> custom_board_InitHardwareExtra;
 extern std::optional<setup_custom_board_config_type> custom_board_OnConfigurationChange;
 
+extern std::optional<setup_custom_board_overrides_type> custom_board_TriggerResetState;
+
 extern std::optional<setup_custom_board_overrides_type> custom_board_BeforeTuneDefaults;
 extern std::optional<setup_custom_board_engine_type_type> custom_board_AfterTuneDefaults;
 extern std::optional<setup_custom_board_engine_type_type> custom_board_applyUnknownType;
@@ -94,6 +96,8 @@ extern std::optional<setup_custom_get_cylinder_ignition_trim_type> custom_board_
 extern std::optional<setup_custom_get_cylinder_fuel_trim_type> custom_board_getCylinderFuelTrim;
 
 extern std::optional<setup_custom_bool_type> custom_board_isBoardWithPowerManagement;
+
+extern std::optional<setup_custom_bool_type> custom_board_getAcrState;
 
 /**
  * This function checks if an override is present and calls it if available.

@@ -122,18 +122,6 @@ void onBurnRequest() {
 }
 
 /**
- * this hook is about https://wiki.rusefi.com/Custom-Firmware and https://wiki.rusefi.com/Canned-Tune-Process
- * todo: why two hooks? is one already dead?
- */
-void boardBeforeTuneDefaults() {
-  // placeholder
-}
-
-void boardOnConfigurationChange(engine_configuration_s* /*previousConfiguration*/) {
-  // placeholder
-}
-
-/**
  * this is the top-level method which should be called in case of any changes to engine configuration
  * online tuning of most values in the maps does not count as configuration change, but 'Burn' command does
  *
@@ -498,6 +486,9 @@ static void setDefaultEngineConfiguration() {
 	// wow unit tests have much cooler setDefaultLaunchParameters method
 	engineConfiguration->launchRpm = 3000;
 // 	engineConfiguration->launchTimingRetard = 10;
+
+  engineConfiguration->launchTpsThreshold = MIN_launchTpsThreshold;
+
 	engineConfiguration->launchRpmWindow = 500;
     engineConfiguration->launchSpeedThreshold = 30;
 

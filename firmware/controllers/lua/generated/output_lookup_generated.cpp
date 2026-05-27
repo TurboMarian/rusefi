@@ -1758,6 +1758,15 @@ float getOutputValueByHash(const int hash) {
 // triggerElapsedUs
 		case 767689023:
 			return engine->triggerCentral.triggerElapsedUs;
+// camResyncCounter
+		case 1138743722:
+			return static_cast<trigger_state_primary_s&>(engine->triggerCentral.triggerState).camResyncCounter;
+// m_phaseAdjustment
+		case -739701471:
+			return static_cast<trigger_state_primary_s&>(engine->triggerCentral.triggerState).m_phaseAdjustment;
+// m_hasSynchronizedPhase
+		case 900196958:
+			return static_cast<trigger_state_primary_s&>(engine->triggerCentral.triggerState).m_hasSynchronizedPhase;
 // lambdaCurrentlyGood
 		case 350535927:
 			return engine->lambdaMonitor.lambdaCurrentlyGood;

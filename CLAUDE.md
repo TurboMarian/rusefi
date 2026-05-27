@@ -35,7 +35,32 @@ make
 ./build/rusefi_test --gtest_filter=TestName
 ```
 
-Unit tests use Google Test and run on amd64/aarch64, not on the ECU.
+#### Code Coverage
+Coverage reports are generated using `gcovr` (requires Python 3).
+
+```bash
+cd unit_tests
+./run_coverage.sh
+```
+
+This script:
+1. Sets up a local Python virtual environment in `unit_tests/venv/`
+2. Installs `gcovr`
+3. Builds tests with `COVERAGE=yes`
+4. Runs all tests
+5. Generates HTML and JSON reports in `unit_tests/coverage_reports/`
+
+Exclusion patterns (e.g., for `googletest` or the `unit_tests` directory itself) are defined in `unit_tests/coverage_common.sh`.
+
+Unit tests use Google Test and run on PC, not on the ECU.
+
+#### Troubleshooting test output
+
+To inspect what a test actually scheduled/executed (events, timings, sniffer/logic traces) call `setUnitTestCreateLogs(true)` (declared in `unit_tests/test-framework/engine_test_helper.h`) before constructing `EngineTestHelper` — typically from `main.cpp` or at the top of an individual test. When enabled, each test writes per-test artifacts (e.g. `unittest_<Suite>_<Name>_trace.json`, logic-data, and engine-sniffer files) into the `unit_tests/test_results/` directory (`TEST_RESULTS_DIR` in `unit_test_logger.h`); the absolute path is printed at process exit by `sayByeBye()`. This is the recommended way to diagnose unexpected scheduler/RPM/injection behavior instead of adding ad-hoc `printf`s.
+
+See also unit_tests/test_results/readme.md for unit tests output.
+
+**Cross-platform requirement**: Unit test code MUST build and run on all supported host platforms — Linux (GCC/Clang), macOS (Clang), and Windows (MSVC and MinGW). Avoid POSIX-only APIs (e.g. `realpath`, `PATH_MAX`, `dirent.h` without guards) unless wrapped in `#ifdef` guards or replaced by portable C++ equivalents. Prefer `std::filesystem` over POSIX path APIs.
 
 ### Code Generation
 
@@ -70,6 +95,12 @@ firmware/gen_enum_to_string.sh
 - `unit_tests/` - Google Test suite
 - `simulator/` - Windows/Linux firmware simulator
 
+### Deep Dive AI Guidance
+For detailed technical documentation intended for AI assistants, see:
+- [Fueling System](docs/AI/fueling_system.md) - Mass-based fueling pipeline (17 stages).
+- [Ignition System](docs/AI/ignition_system.md) - Timing calculation and spark scheduling.
+- [Engine Protection](docs/AI/protection_system.md) - LimpManager and cut logic.
+
 ### Key Concepts
 
 - **Event-driven execution**: Trigger events from crank/cam sensors drive the main control loop
@@ -92,6 +123,7 @@ Code generation is integrated into the Makefile for all four delivery units: eac
 
 - C99 with GNU extensions for C code
 - C++20 for firmware code
+- C++17 (minimum) for unit tests and host-side tooling; portable C++17 features such as `std::filesystem`, `std::optional`, `std::string_view` and structured bindings are preferred over platform-specific APIs to keep unit tests cross-platform (Linux/macOS/Windows-MSVC/MinGW)
 - No RTTI, no exceptions (`-fno-rtti -fno-exceptions`)
 - LTO enabled by default
 

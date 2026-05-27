@@ -9,9 +9,10 @@
 #include "util/injection_crank_helper.h"
 
 TEST(cranking, testFasterEngineSpinningUp) {
+  bool wasLogging = getUnitTestCreateLogs();
+  setUnitTestCreateLogs(true);
+
 	EngineTestHelper eth(engine_type_e::TEST_ENGINE);
-	extern bool unitTestBusyWaitHack;
-	unitTestBusyWaitHack = true;
 	float phase = 181;
 	setTable(config->injectionPhase, -phase);
 	engine->tdcMarkEnabled = false;
@@ -102,7 +103,7 @@ TEST(cranking, testFasterEngineSpinningUp) {
 	// skip, clear & advance 1 more revolution at higher RPM
 	eth.fireFall(60);
 
-	eth.clearQueue();
+	eth.clearQueuePreservingTime();
 	eth.fireTriggerEventsWithDuration(60);
 
 	// check if the mode is now changed to 'running' at higher RPM
@@ -124,6 +125,8 @@ TEST(cranking, testFasterEngineSpinningUp) {
 	auto const turnInjectionPinLowAction{ action_s::make<turnInjectionPinLow>((InjectionEvent*){})};
 	eth.assertEvent5("inj start#3", 0, turnInjectionPinHighAction, -expectedSimultaneousTimestamp - 1625);
 	eth.assertEvent5("inj end#3", 1, turnInjectionPinLowAction, -expectedSimultaneousTimestamp);
+
+	setUnitTestCreateLogs(wasLogging);
 }
 
 static void doTestFasterEngineSpinningUp60_2(int startUpDelayMs, int rpm1, int expectedRpm) {
