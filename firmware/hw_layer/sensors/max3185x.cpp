@@ -21,6 +21,10 @@
 
 #include "hardware.h"
 
+#if EFI_CONFIGURATION_STORAGE
+#include "flash_main.h"
+#endif
+
 #if EFI_PROD_CODE
 #include "mpu_util.h"
 #endif /* EFI_PROD_CODE */
@@ -60,10 +64,22 @@ public:
 		MAX3185X_NOT_ENABLED = 5,
 	} Max3185xState;
 
+	void loadZeroPointsFromConfig() {
+		m_egtZeroPoint[0] = engineConfiguration->egt1_zeroPoint;
+		m_egtZeroPoint[1] = engineConfiguration->egt2_zeroPoint;
+		m_egtZeroPoint[2] = engineConfiguration->egt3_zeroPoint;
+		m_egtZeroPoint[3] = engineConfiguration->egt4_zeroPoint;
+		m_egtZeroPoint[4] = engineConfiguration->egt5_zeroPoint;
+		m_egtZeroPoint[5] = engineConfiguration->egt6_zeroPoint;
+		m_egtZeroPoint[6] = engineConfiguration->egt7_zeroPoint;
+		m_egtZeroPoint[7] = engineConfiguration->egt8_zeroPoint;
+	}
+
 	int start(spi_device_e device, egt_cs_array_t cs) {
 		driver = getSpiDevice(device);
 
 		if (driver) {
+			loadZeroPointsFromConfig();
 			/* WARN: this will clear all other bits in cr1 */
 			//spiConfig.cr1 = getSpiPrescaler(_5MHz, device);
 			for (size_t i = 0; i < EGT_CHANNEL_COUNT; i++) {
@@ -118,14 +134,56 @@ public:
 				if (ret == MAX3185X_OK) {
 					auto& sensor = egtSensors[i];
 
-					sensor.setValidValue(value, getTimeNowNt());
-				} else {
-					/* TODO: report error code? */
-				}
+					bool valid = (value > -500.0f && value < 1250.0f);
 
-				// this one is slow
-				if (types[i] == MAX6675_TYPE) {
-					refreshTime = MAX6675_REFRESH_TIME;
+					if (valid) {
+						float rawTemp = value;
+						float zeroPoint = m_egtZeroPoint[i];
+						float offset = 0.0f;
+						switch (i) {
+							case 0: offset = engineConfiguration->egt1_offset; break;
+							case 1: offset = engineConfiguration->egt2_offset; break;
+							case 2: offset = engineConfiguration->egt3_offset; break;
+							case 3: offset = engineConfiguration->egt4_offset; break;
+							case 4: offset = engineConfiguration->egt5_offset; break;
+							case 5: offset = engineConfiguration->egt6_offset; break;
+							case 6: offset = engineConfiguration->egt7_offset; break;
+							case 7: offset = engineConfiguration->egt8_offset; break;
+						}
+
+						value = (rawTemp - zeroPoint) + offset;
+
+						m_lastValidTemp[i] = value;
+
+						float filterFactor = 0.3f;
+						if (m_hasValidTemp[i]) {
+							m_filteredTemp[i] = filterFactor * value + (1.0f - filterFactor) * m_filteredTemp[i];
+							value = m_filteredTemp[i];
+						} else {
+							m_filteredTemp[i] = value;
+						}
+
+						if (value < 0) {
+							value = 0;
+						}
+
+						m_hasValidTemp[i] = true;
+
+						sensor.setValidValue(value, getTimeNowNt());
+					} else {
+						if (m_hasValidTemp[i]) {
+							sensor.setValidValue(m_lastValidTemp[i], getTimeNowNt());
+						}
+					}
+
+					if (types[i] == MAX6675_TYPE) {
+						refreshTime = MAX6675_REFRESH_TIME;
+					}
+				} else {
+					if (m_hasValidTemp[i]) {
+						auto& sensor = egtSensors[i];
+						sensor.setValidValue(m_lastValidTemp[i], getTimeNowNt());
+					}
 				}
 			}
 
@@ -170,13 +228,56 @@ public:
 		}
 	}
 
+	void egtZero(int channel) {
+		if (channel < 0 || channel >= EGT_CHANNEL_COUNT) {
+			efiPrintf("Invalid EGT channel %d", channel);
+			return;
+		}
+
+		float temp, refTemp;
+		Max3185xState code = getMax3185xEgtValues(channel, &temp, &refTemp);
+
+		if (code != MAX3185X_OK) {
+			efiPrintf("EGT%d: cannot read sensor", channel + 1);
+			return;
+		}
+
+		if (temp < -200.0f || temp > 1250.0f) {
+			efiPrintf("EGT%d: invalid raw temp %.1f", channel + 1, temp);
+			return;
+		}
+
+		m_egtZeroPoint[channel] = temp;
+		m_filteredTemp[channel] = 0;
+		switch (channel) {
+			case 0: engineConfiguration->egt1_zeroPoint = temp; break;
+			case 1: engineConfiguration->egt2_zeroPoint = temp; break;
+			case 2: engineConfiguration->egt3_zeroPoint = temp; break;
+			case 3: engineConfiguration->egt4_zeroPoint = temp; break;
+			case 4: engineConfiguration->egt5_zeroPoint = temp; break;
+			case 5: engineConfiguration->egt6_zeroPoint = temp; break;
+			case 6: engineConfiguration->egt7_zeroPoint = temp; break;
+			case 7: engineConfiguration->egt8_zeroPoint = temp; break;
+			default: break;
+		}
+#if EFI_CONFIGURATION_STORAGE
+		setNeedToWriteConfiguration();
+#endif
+		efiPrintf("EGT%d: zero point set to %.1f (scheduled flash save)", channel + 1, temp);
+	}
+
 private:
 	// bits D17 and D3 are always expected to be zero
 	#define MAX31855_RESERVED_BITS	0x20008
-	// bit D1 is always expected to be zero, D15 is dummy sign bit also always zero
+	// bit D3 is always expected to be zero, D15 is dummy sign bit also always zero
 	#define MAX6675_RESERVED_BITS	0x8002
 
 	brain_pin_e m_cs[EGT_CHANNEL_COUNT];
+
+	float m_lastValidTemp[EGT_CHANNEL_COUNT] = {0};
+	bool m_hasValidTemp[EGT_CHANNEL_COUNT] = {false};
+	float m_filteredTemp[EGT_CHANNEL_COUNT] = {0};
+	float m_egtZeroPoint[EGT_CHANNEL_COUNT] = {0};
 
 	SPIDriver *driver;
 
@@ -549,9 +650,21 @@ static void egtRead() {
 	instance.egtRead();
 }
 
+static void egtZero(int channel) {
+	instance.egtZero(channel);
+}
+
+void egtZeroFromTS(int index) {
+	int channel = index - 1;
+	if (channel >= 0 && channel < EGT_CHANNEL_COUNT) {
+		instance.egtZero(channel);
+	}
+}
+
 void initMax3185x(spi_device_e device, egt_cs_array_t max31855_cs) {
 	addConsoleAction("egtinfo", (Void) showEgtInfo);
 	addConsoleAction("egtread", (Void) egtRead);
+	addConsoleActionI("egtzero", (VoidInt) egtZero);
 
 	startMax3185x(device, max31855_cs);
 }

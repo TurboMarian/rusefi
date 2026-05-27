@@ -961,6 +961,22 @@ spi_device_e digitalPotentiometerSpiDevice;Digital Potentiometer is used by stoc
 	pin_input_mode_e clutchUpPinMode;
 
 	Gpio[EGT_CHANNEL_COUNT iterate] max31855_cs;
+	int16_t egt1_offset;EGT 1 temperature offset;"°C", 1, 0, -500, 500, 0
+	int16_t egt2_offset;EGT 2 temperature offset;"°C", 1, 0, -500, 500, 0
+	int16_t egt3_offset;EGT 3 temperature offset;"°C", 1, 0, -500, 500, 0
+	int16_t egt4_offset;EGT 4 temperature offset;"°C", 1, 0, -500, 500, 0
+	int16_t egt5_offset;EGT 5 temperature offset;"°C", 1, 0, -500, 500, 0
+	int16_t egt6_offset;EGT 6 temperature offset;"°C", 1, 0, -500, 500, 0
+	int16_t egt7_offset;EGT 7 temperature offset;"°C", 1, 0, -500, 500, 0
+	int16_t egt8_offset;EGT 8 temperature offset;"°C", 1, 0, -500, 500, 0
+	float egt1_zeroPoint;EGT 1 Zero EGT raw reading (saved with flash write);"\u00B0C", 1, 0, -500, 1250, 1
+	float egt2_zeroPoint;EGT 2 Zero EGT raw reading (saved with flash write);"\u00B0C", 1, 0, -500, 1250, 1
+	float egt3_zeroPoint;EGT 3 Zero EGT raw reading (saved with flash write);"\u00B0C", 1, 0, -500, 1250, 1
+	float egt4_zeroPoint;EGT 4 Zero EGT raw reading (saved with flash write);"\u00B0C", 1, 0, -500, 1250, 1
+	float egt5_zeroPoint;EGT 5 Zero EGT raw reading (saved with flash write);"\u00B0C", 1, 0, -500, 1250, 1
+	float egt6_zeroPoint;EGT 6 Zero EGT raw reading (saved with flash write);"\u00B0C", 1, 0, -500, 1250, 1
+	float egt7_zeroPoint;EGT 7 Zero EGT raw reading (saved with flash write);"\u00B0C", 1, 0, -500, 1250, 1
+	float egt8_zeroPoint;EGT 8 Zero EGT raw reading (saved with flash write);"\u00B0C", 1, 0, -500, 1250, 1
 	brain_input_pin_e flexSensorPin;Continental/GM flex fuel sensor, 50-150hz type;
 	uint16_t torqueReductionArmingRpm;Since torque reduction pin is usually shared with launch control, most people have an RPM where behavior under that is Launch Control, over that is Flat Shift/Torque Reduction;"rpm", 1, 0, 0, 20000, 0
 	pin_output_mode_e stepperDirectionPinMode;

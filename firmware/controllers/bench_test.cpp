@@ -36,6 +36,9 @@
 
 #include "fw_configuration.h"
 #include "board_overrides.h"
+#if EFI_MAX_31855
+#include "max3185x.h"
+#endif
 
 static bool isRunningBench = false;
 static OutputPin *outputOnTheBenchTest = nullptr;
@@ -840,6 +843,12 @@ void executeTSCommand(uint16_t subsystem, uint16_t index) {
 	case TS_STOP_ENGINE:
 		doScheduleStopEngine(StopRequestedReason::TsCommand);
 		break;
+
+#if EFI_MAX_31855
+	case TS_COMMAND_1:
+		egtZeroFromTS(static_cast<int>(index));
+		break;
+#endif
 
 	case 0xba:
 #if EFI_PROD_CODE && EFI_DFU_JUMP
